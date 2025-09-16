@@ -21,29 +21,37 @@ import { ShippingMethodSelector } from '~/components/checkout/ShippingMethodSele
 import { ShippingAddressSelector } from '~/components/checkout/ShippingAddressSelector';
 import { getActiveOrder } from '~/providers/orders/order';
 import { useTranslation } from 'react-i18next';
+import AddAddressCard from '~/components/account/AddAddressCard';
 
+// Loader to fetch necessary data
 export async function loader({ request }: DataFunctionArgs) {
+  console.log('CheckoutShipping loader executed'); // Debug log
   const session = await getSessionStorage().then((sessionStorage) =>
     sessionStorage.getSession(request?.headers.get('Cookie')),
   );
-
   const activeOrder = await getActiveOrder({ request });
 
-  //check if there is an active order if not redirect to homepage
+  // Debug log for session and order
+  console.log('Loader data:', { session, activeOrder });
+
+  // Temporarily bypass redirect for debugging
   if (
     !session ||
     !activeOrder ||
     !activeOrder.active ||
     activeOrder.lines.length === 0
   ) {
-    return redirect('/');
+    console.log('Redirect would occur, but bypassed for debugging');
+    // return redirect('/');
   }
+
   const { availableCountries } = await getAvailableCountries({ request });
   const { eligibleShippingMethods } = await getEligibleShippingMethods({
     request,
   });
   const { activeCustomer } = await getActiveCustomerAddresses({ request });
   const error = session.get('activeOrderError');
+
   return json({
     availableCountries,
     eligibleShippingMethods,
@@ -52,6 +60,7 @@ export async function loader({ request }: DataFunctionArgs) {
   });
 }
 
+// Main component
 export default function CheckoutShipping() {
   const { availableCountries, eligibleShippingMethods, activeCustomer, error } =
     useLoaderData<typeof loader>();
@@ -59,15 +68,25 @@ export default function CheckoutShipping() {
   const [customerFormChanged, setCustomerFormChanged] = useState(false);
   const [addressFormChanged, setAddressFormChanged] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
-  let navigate = useNavigate();
+  const navigate = useNavigate();
   const { t } = useTranslation();
+
+  console.log('Rendering CheckoutShipping:', {
+    activeOrder,
+    availableCountries,
+    error,
+  }); // Debug log
+
+  if (!activeOrder || !availableCountries || !eligibleShippingMethods) {
+    return <div>Loading CheckoutShipping...</div>; // Fallback UI
+  }
 
   const { customer, shippingAddress } = activeOrder ?? {};
   const isSignedIn = !!activeCustomer?.id;
   const addresses = activeCustomer?.addresses ?? [];
   const defaultFullName =
     shippingAddress?.fullName ??
-    (customer ? `${customer.firstName} ${customer.lastName}` : ``);
+    (customer ? `${customer.firstName} ${customer.lastName}` : '');
   const canProceedToPayment =
     customer &&
     ((shippingAddress?.streetLine1 && shippingAddress?.postalCode) ||
@@ -95,6 +114,7 @@ export default function CheckoutShipping() {
       setCustomerFormChanged(false);
     }
   };
+
   const submitAddressForm = (event: FormEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);
     const isValid = event.currentTarget.checkValidity();
@@ -102,6 +122,7 @@ export default function CheckoutShipping() {
       setShippingAddress(formData);
     }
   };
+
   const submitSelectedAddress = (index: number) => {
     const selectedAddress = activeCustomer?.addresses?.[index];
     if (selectedAddress) {
@@ -183,6 +204,7 @@ export default function CheckoutShipping() {
                   autoComplete="email"
                   defaultValue={customer?.emailAddress}
                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  required
                 />
               </div>
               {error?.errorCode === 'EMAIL_ADDRESS_CONFLICT_ERROR' && (
@@ -207,10 +229,10 @@ export default function CheckoutShipping() {
                     autoComplete="given-name"
                     defaultValue={customer?.firstName}
                     className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    required
                   />
                 </div>
               </div>
-
               <div>
                 <label
                   htmlFor="lastName"
@@ -226,6 +248,7 @@ export default function CheckoutShipping() {
                     autoComplete="family-name"
                     defaultValue={customer?.lastName}
                     className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    required
                   />
                 </div>
               </div>
@@ -256,13 +279,13 @@ export default function CheckoutShipping() {
           </div>
         ) : (
           <AddressForm
-            availableCountries={activeOrder ? availableCountries : undefined}
+            availableCountries={availableCountries}
             address={shippingAddress}
             defaultFullName={defaultFullName}
-          ></AddressForm>
+          />
         )}
       </Form>
-
+      <AddAddressCard />
       <div className="mt-10 border-t border-gray-200 pt-10">
         <ShippingMethodSelector
           eligibleShippingMethods={eligibleShippingMethods}
@@ -285,7 +308,7 @@ export default function CheckoutShipping() {
           'flex w-full items-center justify-center space-x-2 mt-24 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
         )}
       >
-        <LockClosedIcon className="w-5 h-5"></LockClosedIcon>
+        <LockClosedIcon className="w-5 h-5" />
         <span>{t('checkout.goToPayment')}</span>
       </button>
     </div>

@@ -8,20 +8,48 @@ import {
   UpdateAddressInput,
   UpdateCustomerInput,
   VerifyCustomerAccountMutation,
+  AuthenticationInput,
+  CurrentUser,
+  ErrorResult,
 } from '~/generated/graphql';
 import { QueryOptions, sdk, WithHeaders } from '~/graphqlWrapper';
+import { redirect } from '@remix-run/server-runtime';
+import { getSessionStorage } from '~/sessions';
 
-export const login = async (
+// export const login = async (
+//   email: string,
+//   password: string,
+//   rememberMe: boolean,
+//   options: QueryOptions,
+// ): Promise<WithHeaders<LoginMutation['login']>> => {
+//   return sdk.login({ email, password, rememberMe }, options).then((res) => ({
+//     ...res.login,
+//     _headers: res._headers,
+//   }));
+// };
+
+export async function login(
   email: string,
   password: string,
   rememberMe: boolean,
-  options: QueryOptions,
-): Promise<WithHeaders<LoginMutation['login']>> => {
-  return sdk.login({ email, password, rememberMe }, options).then((res) => ({
-    ...res.login,
-    _headers: res._headers,
-  }));
-};
+  p0: { request: Request; customHeaders: { 'vendure-token': string } },
+) {
+  const response = await sdk.login(
+    {
+      email,
+      password,
+      rememberMe,
+    },
+    {
+      customHeaders: p0.customHeaders,
+    },
+  );
+
+  return {
+    ...response.login,
+    _headers: response._headers,
+  };
+}
 
 export const logout = async (
   options: QueryOptions,
@@ -31,6 +59,23 @@ export const logout = async (
     _headers: res._headers,
   }));
 };
+
+// export const logout = async (
+//   options: QueryOptions
+// ): Promise<WithHeaders<LogoutMutation['logout']> | Response> => {
+//   const logoutResult = await sdk.logout({}, options);
+//   const sessionStorage = await getSessionStorage();
+//   const session = await sessionStorage.getSession(
+//     options?.request?.headers.get('Cookie')
+//   );
+//   const setCookie = await sessionStorage.destroySession(session);
+
+//   const headers = new Headers(logoutResult._headers);
+//   headers.set('Set-Cookie', setCookie);
+
+//   // Redirect to login page
+//   return redirect('/login', { headers });
+// };
 
 export const registerCustomerAccount = async (
   options: QueryOptions,
@@ -117,6 +162,48 @@ export async function updateCustomerPassword(
     .updateCustomerPassword(input, options)
     .then((res) => res.updateCustomerPassword);
 }
+
+// export async function authenticate(
+//   input: AuthenticationInput,
+//   p0: { request: Request; customHeaders: { 'vendure-token': string } }
+// ): Promise<{ result: CurrentUser | ErrorResult; headers: Headers }> {
+//   const response = await sdk.authenticate(
+//     { input },
+//     { customHeaders: p0.customHeaders }
+//   );
+
+//   return {
+//     result: response.authenticate,
+//     headers: response._headers,
+//   };
+// }
+
+// gql`
+// mutation authenticate($input: AuthenticationInput!) {
+//   authenticate(input: $input) {
+//     __typename
+//     ... on CurrentUser {
+//       id
+//       identifier
+//       channels {
+//         id
+//         code
+//         token
+//         permissions
+//       }
+//     }
+//     ... on InvalidCredentialsError {
+//       message
+//       errorCode
+//     }
+//     ... on NotVerifiedError {
+//       message
+//       errorCode
+//     }
+//   }
+// }
+
+// `;
 
 gql`
   mutation login($email: String!, $password: String!, $rememberMe: Boolean) {
@@ -255,3 +342,57 @@ gql`
     }
   }
 `;
+
+export async function authenticate(
+  input: AuthenticationInput,
+  {
+    request,
+    customHeaders,
+  }: { request: Request; customHeaders: { 'vendure-token': string } },
+): Promise<{ result: CurrentUser | ErrorResult; headers: Headers }> {
+  const vendureApiUrl = process.env.VENDURE_API_URL;
+  console.log('authenticate:', authenticate);
+  const response = await fetch(vendureApiUrl!, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'vendure-token': customHeaders['vendure-token'],
+    },
+    body: JSON.stringify({
+      query: `
+        mutation Authenticate($input: AuthenticationInput!) {
+          authenticate(input: $input) {
+            __typename
+            ... on CurrentUser {
+              id
+              identifier
+              channels {
+                id
+                code
+                token
+                permissions
+              }
+            }
+            ... on InvalidCredentialsError {
+              message
+              errorCode
+            }
+            ... on NotVerifiedError {
+              message
+              errorCode
+            }
+          }
+        }
+      `,
+      variables: { input },
+    }),
+  });
+
+  const json = (await response.json()) as {
+    data: { authenticate: CurrentUser | ErrorResult };
+  };
+  return {
+    result: json.data.authenticate,
+    headers: response.headers,
+  };
+}

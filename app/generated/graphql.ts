@@ -118,6 +118,7 @@ export enum AssetType {
 
 export type AuthenticationInput = {
   native?: InputMaybe<NativeAuthInput>;
+  phoneOtp?: InputMaybe<PhoneOtpInput>;
 };
 
 export type AuthenticationMethod = Node & {
@@ -142,6 +143,7 @@ export type BooleanCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
@@ -155,6 +157,16 @@ export type BooleanListOperators = {
 export type BooleanOperators = {
   eq?: InputMaybe<Scalars['Boolean']>;
   isNull?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type BooleanStructFieldConfig = StructField & {
+  __typename?: 'BooleanStructFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  list: Scalars['Boolean'];
+  name: Scalars['String'];
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
 };
 
 export type Channel = Node & {
@@ -215,6 +227,8 @@ export type CollectionBreadcrumb = {
 };
 
 export type CollectionFilterParameter = {
+  _and?: InputMaybe<Array<CollectionFilterParameter>>;
+  _or?: InputMaybe<Array<CollectionFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   description?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
@@ -235,7 +249,7 @@ export type CollectionList = PaginatedList & {
 export type CollectionListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<CollectionFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -326,6 +340,12 @@ export type Coordinate = {
   y: Scalars['Float'];
 };
 
+/**
+ * A Country of the world which your shop operates in.
+ *
+ * The `code` field is typically a 2-character ISO code such as "GB", "US", "DE" etc. This code is used in certain inputs such as
+ * `UpdateAddressInput` and `CreateAddressInput` to specify the country.
+ */
 export type Country = Node &
   Region & {
     __typename?: 'Country';
@@ -346,6 +366,12 @@ export type Country = Node &
 export type CountryList = PaginatedList & {
   __typename?: 'CountryList';
   items: Array<Country>;
+  totalItems: Scalars['Int'];
+};
+
+export type CoupcodesList = PaginatedList & {
+  __typename?: 'CoupcodesList';
+  items: Array<Promotion>;
   totalItems: Scalars['Int'];
 };
 
@@ -374,6 +400,13 @@ export type CouponCodeLimitError = ErrorResult & {
   message: Scalars['String'];
 };
 
+/**
+ * Input used to create an Address.
+ *
+ * The countryCode must correspond to a `code` property of a Country that has been defined in the
+ * Vendure server. The `code` property is typically a 2-character ISO code such as "GB", "US", "DE" etc.
+ * If an invalid code is passed, the mutation will fail.
+ */
 export type CreateAddressInput = {
   city?: InputMaybe<Scalars['String']>;
   company?: InputMaybe<Scalars['String']>;
@@ -389,8 +422,12 @@ export type CreateAddressInput = {
   streetLine2?: InputMaybe<Scalars['String']>;
 };
 
+export type CreateCustomerCustomFieldsInput = {
+  loyaltyPointsAvailable?: InputMaybe<Scalars['Int']>;
+};
+
 export type CreateCustomerInput = {
-  customFields?: InputMaybe<Scalars['JSON']>;
+  customFields?: InputMaybe<CreateCustomerCustomFieldsInput>;
   emailAddress: Scalars['String'];
   firstName: Scalars['String'];
   lastName: Scalars['String'];
@@ -736,6 +773,15 @@ export type CurrentUserChannel = {
   token: Scalars['String'];
 };
 
+export type CustomBanner = {
+  __typename?: 'CustomBanner';
+  assets: Array<Asset>;
+  channels: Array<Channel>;
+  createdAt: Scalars['DateTime'];
+  id: Scalars['ID'];
+  updatedAt: Scalars['DateTime'];
+};
+
 export type CustomField = {
   description?: Maybe<Array<LocalizedString>>;
   internal?: Maybe<Scalars['Boolean']>;
@@ -744,6 +790,7 @@ export type CustomField = {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
@@ -757,17 +804,20 @@ export type CustomFieldConfig =
   | LocaleTextCustomFieldConfig
   | RelationCustomFieldConfig
   | StringCustomFieldConfig
+  | StructCustomFieldConfig
   | TextCustomFieldConfig;
 
 export type Customer = Node & {
   __typename?: 'Customer';
   addresses?: Maybe<Array<Address>>;
   createdAt: Scalars['DateTime'];
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<CustomerCustomFields>;
   emailAddress: Scalars['String'];
+  favorites: FavoriteList;
   firstName: Scalars['String'];
   id: Scalars['ID'];
   lastName: Scalars['String'];
+  loyaltyPointsTransactions: LoyaltyPointsTransactionList;
   orders: OrderList;
   phoneNumber?: Maybe<Scalars['String']>;
   title?: Maybe<Scalars['String']>;
@@ -775,16 +825,32 @@ export type Customer = Node & {
   user?: Maybe<User>;
 };
 
+export type CustomerFavoritesArgs = {
+  options?: InputMaybe<FavoriteListOptions>;
+};
+
+export type CustomerLoyaltyPointsTransactionsArgs = {
+  options?: InputMaybe<LoyaltyPointsTransactionListOptions>;
+};
+
 export type CustomerOrdersArgs = {
   options?: InputMaybe<OrderListOptions>;
 };
 
+export type CustomerCustomFields = {
+  __typename?: 'CustomerCustomFields';
+  loyaltyPointsAvailable?: Maybe<Scalars['Int']>;
+};
+
 export type CustomerFilterParameter = {
+  _and?: InputMaybe<Array<CustomerFilterParameter>>;
+  _or?: InputMaybe<Array<CustomerFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   emailAddress?: InputMaybe<StringOperators>;
   firstName?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
   lastName?: InputMaybe<StringOperators>;
+  loyaltyPointsAvailable?: InputMaybe<NumberOperators>;
   phoneNumber?: InputMaybe<StringOperators>;
   title?: InputMaybe<StringOperators>;
   updatedAt?: InputMaybe<DateOperators>;
@@ -813,7 +879,7 @@ export type CustomerList = PaginatedList & {
 export type CustomerListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<CustomerFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -829,6 +895,7 @@ export type CustomerSortParameter = {
   firstName?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
   lastName?: InputMaybe<SortOrder>;
+  loyaltyPointsAvailable?: InputMaybe<SortOrder>;
   phoneNumber?: InputMaybe<SortOrder>;
   title?: InputMaybe<SortOrder>;
   updatedAt?: InputMaybe<SortOrder>;
@@ -868,6 +935,24 @@ export type DateTimeCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
+  step?: Maybe<Scalars['Int']>;
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+/**
+ * Expects the same validation formats as the `<input type="datetime-local">` HTML element.
+ * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local#Additional_attributes
+ */
+export type DateTimeStructFieldConfig = StructField & {
+  __typename?: 'DateTimeStructFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  list: Scalars['Boolean'];
+  max?: Maybe<Scalars['String']>;
+  min?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
   step?: Maybe<Scalars['Int']>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
@@ -920,6 +1005,7 @@ export enum ErrorCode {
   NegativeQuantityError = 'NEGATIVE_QUANTITY_ERROR',
   NotVerifiedError = 'NOT_VERIFIED_ERROR',
   NoActiveOrderError = 'NO_ACTIVE_ORDER_ERROR',
+  OrderInterceptorError = 'ORDER_INTERCEPTOR_ERROR',
   OrderLimitError = 'ORDER_LIMIT_ERROR',
   OrderModificationError = 'ORDER_MODIFICATION_ERROR',
   OrderPaymentStateError = 'ORDER_PAYMENT_STATE_ERROR',
@@ -950,10 +1036,18 @@ export type Facet = Node & {
   name: Scalars['String'];
   translations: Array<FacetTranslation>;
   updatedAt: Scalars['DateTime'];
+  /** Returns a paginated, sortable, filterable list of the Facet's values. Added in v2.1.0. */
+  valueList: FacetValueList;
   values: Array<FacetValue>;
 };
 
+export type FacetValueListArgs = {
+  options?: InputMaybe<FacetValueListOptions>;
+};
+
 export type FacetFilterParameter = {
+  _and?: InputMaybe<Array<FacetFilterParameter>>;
+  _or?: InputMaybe<Array<FacetFilterParameter>>;
   code?: InputMaybe<StringOperators>;
   createdAt?: InputMaybe<DateOperators>;
   id?: InputMaybe<IdOperators>;
@@ -971,7 +1065,7 @@ export type FacetList = PaginatedList & {
 export type FacetListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<FacetFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -1004,6 +1098,7 @@ export type FacetValue = Node & {
   createdAt: Scalars['DateTime'];
   customFields?: Maybe<Scalars['JSON']>;
   facet: Facet;
+  facetId: Scalars['ID'];
   id: Scalars['ID'];
   languageCode: LanguageCode;
   name: Scalars['String'];
@@ -1024,6 +1119,37 @@ export type FacetValueFilterInput = {
   or?: InputMaybe<Array<Scalars['ID']>>;
 };
 
+export type FacetValueFilterParameter = {
+  _and?: InputMaybe<Array<FacetValueFilterParameter>>;
+  _or?: InputMaybe<Array<FacetValueFilterParameter>>;
+  code?: InputMaybe<StringOperators>;
+  createdAt?: InputMaybe<DateOperators>;
+  facetId?: InputMaybe<IdOperators>;
+  id?: InputMaybe<IdOperators>;
+  languageCode?: InputMaybe<StringOperators>;
+  name?: InputMaybe<StringOperators>;
+  updatedAt?: InputMaybe<DateOperators>;
+};
+
+export type FacetValueList = PaginatedList & {
+  __typename?: 'FacetValueList';
+  items: Array<FacetValue>;
+  totalItems: Scalars['Int'];
+};
+
+export type FacetValueListOptions = {
+  /** Allows the results to be filtered */
+  filter?: InputMaybe<FacetValueFilterParameter>;
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
+  filterOperator?: InputMaybe<LogicalOperator>;
+  /** Skips the first n results, for use in pagination */
+  skip?: InputMaybe<Scalars['Int']>;
+  /** Specifies which properties to sort the results by */
+  sort?: InputMaybe<FacetValueSortParameter>;
+  /** Takes n results, for use in pagination */
+  take?: InputMaybe<Scalars['Int']>;
+};
+
 /**
  * Which FacetValues are present in the products returned
  * by the search, and in what quantity.
@@ -1034,6 +1160,15 @@ export type FacetValueResult = {
   facetValue: FacetValue;
 };
 
+export type FacetValueSortParameter = {
+  code?: InputMaybe<SortOrder>;
+  createdAt?: InputMaybe<SortOrder>;
+  facetId?: InputMaybe<SortOrder>;
+  id?: InputMaybe<SortOrder>;
+  name?: InputMaybe<SortOrder>;
+  updatedAt?: InputMaybe<SortOrder>;
+};
+
 export type FacetValueTranslation = {
   __typename?: 'FacetValueTranslation';
   createdAt: Scalars['DateTime'];
@@ -1041,6 +1176,48 @@ export type FacetValueTranslation = {
   languageCode: LanguageCode;
   name: Scalars['String'];
   updatedAt: Scalars['DateTime'];
+};
+
+export type Favorite = Node & {
+  __typename?: 'Favorite';
+  createdAt: Scalars['DateTime'];
+  customer: Customer;
+  id: Scalars['ID'];
+  product?: Maybe<Product>;
+  updatedAt: Scalars['DateTime'];
+};
+
+export type FavoriteFilterParameter = {
+  _and?: InputMaybe<Array<FavoriteFilterParameter>>;
+  _or?: InputMaybe<Array<FavoriteFilterParameter>>;
+  createdAt?: InputMaybe<DateOperators>;
+  id?: InputMaybe<IdOperators>;
+  updatedAt?: InputMaybe<DateOperators>;
+};
+
+export type FavoriteList = PaginatedList & {
+  __typename?: 'FavoriteList';
+  items: Array<Favorite>;
+  totalItems: Scalars['Int'];
+};
+
+export type FavoriteListOptions = {
+  /** Allows the results to be filtered */
+  filter?: InputMaybe<FavoriteFilterParameter>;
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
+  filterOperator?: InputMaybe<LogicalOperator>;
+  /** Skips the first n results, for use in pagination */
+  skip?: InputMaybe<Scalars['Int']>;
+  /** Specifies which properties to sort the results by */
+  sort?: InputMaybe<FavoriteSortParameter>;
+  /** Takes n results, for use in pagination */
+  take?: InputMaybe<Scalars['Int']>;
+};
+
+export type FavoriteSortParameter = {
+  createdAt?: InputMaybe<SortOrder>;
+  id?: InputMaybe<SortOrder>;
+  updatedAt?: InputMaybe<SortOrder>;
 };
 
 export type FloatCustomFieldConfig = CustomField & {
@@ -1054,9 +1231,29 @@ export type FloatCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   step?: Maybe<Scalars['Float']>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
+};
+
+export type FloatStructFieldConfig = StructField & {
+  __typename?: 'FloatStructFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  list: Scalars['Boolean'];
+  max?: Maybe<Scalars['Float']>;
+  min?: Maybe<Scalars['Float']>;
+  name: Scalars['String'];
+  step?: Maybe<Scalars['Float']>;
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+export type FrequentlyOrderedProduct = {
+  __typename?: 'FrequentlyOrderedProduct';
+  orderCount: Scalars['Int'];
+  product: Product;
 };
 
 export type Fulfillment = Node & {
@@ -1099,6 +1296,7 @@ export type GuestCheckoutError = ErrorResult & {
 export type HistoryEntry = Node & {
   __typename?: 'HistoryEntry';
   createdAt: Scalars['DateTime'];
+  customFields?: Maybe<Scalars['JSON']>;
   data: Scalars['JSON'];
   id: Scalars['ID'];
   type: HistoryEntryType;
@@ -1106,6 +1304,8 @@ export type HistoryEntry = Node & {
 };
 
 export type HistoryEntryFilterParameter = {
+  _and?: InputMaybe<Array<HistoryEntryFilterParameter>>;
+  _or?: InputMaybe<Array<HistoryEntryFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   id?: InputMaybe<IdOperators>;
   type?: InputMaybe<StringOperators>;
@@ -1121,7 +1321,7 @@ export type HistoryEntryList = PaginatedList & {
 export type HistoryEntryListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<HistoryEntryFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -1155,6 +1355,7 @@ export enum HistoryEntryType {
   OrderCancellation = 'ORDER_CANCELLATION',
   OrderCouponApplied = 'ORDER_COUPON_APPLIED',
   OrderCouponRemoved = 'ORDER_COUPON_REMOVED',
+  OrderCustomerUpdated = 'ORDER_CUSTOMER_UPDATED',
   OrderFulfillment = 'ORDER_FULFILLMENT',
   OrderFulfillmentTransition = 'ORDER_FULFILLMENT_TRANSITION',
   OrderModified = 'ORDER_MODIFIED',
@@ -1233,6 +1434,20 @@ export type IntCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
+  step?: Maybe<Scalars['Int']>;
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+export type IntStructFieldConfig = StructField & {
+  __typename?: 'IntStructFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  list: Scalars['Boolean'];
+  max?: Maybe<Scalars['Int']>;
+  min?: Maybe<Scalars['Int']>;
+  name: Scalars['String'];
   step?: Maybe<Scalars['Int']>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
@@ -1583,6 +1798,7 @@ export type LocaleStringCustomFieldConfig = CustomField & {
   nullable?: Maybe<Scalars['Boolean']>;
   pattern?: Maybe<Scalars['String']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
@@ -1596,6 +1812,7 @@ export type LocaleTextCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
@@ -1611,6 +1828,73 @@ export enum LogicalOperator {
   Or = 'OR',
 }
 
+export type LoyaltyPointsConfig = {
+  __typename?: 'LoyaltyPointsConfig';
+  channels: Array<Channel>;
+  createdAt: Scalars['DateTime'];
+  id: Scalars['ID'];
+  pointsPerRupee: Scalars['Int'];
+  rupeesPerPoint: Scalars['Int'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type LoyaltyPointsTransaction = Node & {
+  __typename?: 'LoyaltyPointsTransaction';
+  createdAt: Scalars['DateTime'];
+  id: Scalars['ID'];
+  note: Scalars['String'];
+  order?: Maybe<Order>;
+  type: LoyaltyTransactionType;
+  updatedAt: Scalars['DateTime'];
+  value: Scalars['Int'];
+};
+
+export type LoyaltyPointsTransactionFilterParameter = {
+  _and?: InputMaybe<Array<LoyaltyPointsTransactionFilterParameter>>;
+  _or?: InputMaybe<Array<LoyaltyPointsTransactionFilterParameter>>;
+  createdAt?: InputMaybe<DateOperators>;
+  id?: InputMaybe<IdOperators>;
+  note?: InputMaybe<StringOperators>;
+  type?: InputMaybe<StringOperators>;
+  updatedAt?: InputMaybe<DateOperators>;
+  value?: InputMaybe<NumberOperators>;
+};
+
+export type LoyaltyPointsTransactionList = PaginatedList & {
+  __typename?: 'LoyaltyPointsTransactionList';
+  items: Array<LoyaltyPointsTransaction>;
+  totalItems: Scalars['Int'];
+};
+
+export type LoyaltyPointsTransactionListOptions = {
+  /** Allows the results to be filtered */
+  filter?: InputMaybe<LoyaltyPointsTransactionFilterParameter>;
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
+  filterOperator?: InputMaybe<LogicalOperator>;
+  /** Skips the first n results, for use in pagination */
+  skip?: InputMaybe<Scalars['Int']>;
+  /** Specifies which properties to sort the results by */
+  sort?: InputMaybe<LoyaltyPointsTransactionSortParameter>;
+  /** Takes n results, for use in pagination */
+  take?: InputMaybe<Scalars['Int']>;
+};
+
+export type LoyaltyPointsTransactionSortParameter = {
+  createdAt?: InputMaybe<SortOrder>;
+  id?: InputMaybe<SortOrder>;
+  note?: InputMaybe<SortOrder>;
+  updatedAt?: InputMaybe<SortOrder>;
+  value?: InputMaybe<SortOrder>;
+};
+
+export enum LoyaltyTransactionType {
+  AdministratorAdjusted = 'ADMINISTRATOR_ADJUSTED',
+  EarnedOnOrder = 'EARNED_ON_ORDER',
+  OrderCancelled = 'ORDER_CANCELLED',
+  Other = 'OTHER',
+  UsedOnOrder = 'USED_ON_ORDER',
+}
+
 /** Returned when attempting to register or verify a customer account without a password, when one is required. */
 export type MissingPasswordError = ErrorResult & {
   __typename?: 'MissingPasswordError';
@@ -1620,7 +1904,7 @@ export type MissingPasswordError = ErrorResult & {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Adds an item to the order. If custom fields are defined on the OrderLine entity, a third argument 'customFields' will be available. */
+  /** Adds an item to the Order. If custom fields are defined on the OrderLine entity, a third argument 'customFields' will be available. */
   addItemToOrder: UpdateOrderItemsResult;
   /** Add a Payment to the Order */
   addPaymentToOrder: AddPaymentToOrderResult;
@@ -1628,17 +1912,26 @@ export type Mutation = {
   adjustOrderLine: UpdateOrderItemsResult;
   /** Applies the given coupon code to the active Order */
   applyCouponCode: ApplyCouponCodeResult;
+  applyLoyaltyPointsToActiveOrder: Order;
   /** Authenticates the user using a named authentication strategy */
   authenticate: AuthenticationResult;
+  cancelOrderOnClientRequest: Order;
   /** Create a new Customer Address */
   createCustomerAddress: Address;
   createStripePaymentIntent?: Maybe<Scalars['String']>;
   /** Delete an existing Address */
   deleteCustomerAddress: Success;
-  /** Authenticates the user using the native authentication strategy. This mutation is an alias for `authenticate({ native: { ... }})` */
+  generateRazorpayOrderId: GenerateRazorpayOrderIdResult;
+  /**
+   * Authenticates the user using the native authentication strategy. This mutation is an alias for authenticate({ native: { ... }})
+   *
+   * The `rememberMe` option applies when using cookie-based sessions, and if `true` it will set the maxAge of the session cookie
+   * to 1 year.
+   */
   login: NativeAuthenticationResult;
   /** End the current authenticated session */
   logout: Success;
+  otherInstructions: Order;
   /** Regenerate and send a verification token for a new Customer registration. Only applicable if `authOptions.requireVerification` is set to true. */
   refreshCustomerVerification: RefreshCustomerVerificationResult;
   /**
@@ -1662,6 +1955,7 @@ export type Mutation = {
   removeAllOrderLines: RemoveOrderItemsResult;
   /** Removes the given coupon code from the active Order */
   removeCouponCode?: Maybe<Order>;
+  removeLoyaltyPointsFromActiveOrder?: Maybe<Order>;
   /** Remove an OrderLine from the Order */
   removeOrderLine: RemoveOrderItemsResult;
   /** Requests a password reset email to be sent */
@@ -1673,15 +1967,17 @@ export type Mutation = {
    * that verification token to the Customer, which is then used to verify the change of email address.
    */
   requestUpdateCustomerEmailAddress: RequestUpdateCustomerEmailAddressResult;
+  resendPhoneOtp?: Maybe<Scalars['String']>;
   /** Resets a Customer's password based on the provided token */
   resetPassword: ResetPasswordResult;
+  sendPhoneOtp?: Maybe<Scalars['String']>;
   /** Set the Customer for the Order. Required only if the Customer is not currently logged in */
   setCustomerForOrder: SetCustomerForOrderResult;
-  /** Sets the billing address for this order */
+  /** Sets the billing address for the active Order */
   setOrderBillingAddress: ActiveOrderResult;
-  /** Allows any custom fields to be set for the active order */
+  /** Allows any custom fields to be set for the active Order */
   setOrderCustomFields: ActiveOrderResult;
-  /** Sets the shipping address for this order */
+  /** Sets the shipping address for the active Order */
   setOrderShippingAddress: ActiveOrderResult;
   /**
    * Sets the shipping method by id, which can be obtained with the `eligibleShippingMethods` query.
@@ -1690,8 +1986,14 @@ export type Mutation = {
    * shipping method will apply to.
    */
   setOrderShippingMethod: SetOrderShippingMethodResult;
+  toggleFavorite: FavoriteList;
+  togglePromotionState: Promotion;
   /** Transitions an Order to a new state. Valid next states can be found by querying `nextOrderStates` */
   transitionOrderToState?: Maybe<TransitionOrderToStateResult>;
+  /** Unsets the billing address for the active Order. Available since version 3.1.0 */
+  unsetOrderBillingAddress: ActiveOrderResult;
+  /** Unsets the shipping address for the active Order. Available since version 3.1.0 */
+  unsetOrderShippingAddress: ActiveOrderResult;
   /** Update an existing Customer */
   updateCustomer: Customer;
   /** Update an existing Address */
@@ -1703,6 +2005,7 @@ export type Mutation = {
   updateCustomerEmailAddress: UpdateCustomerEmailAddressResult;
   /** Update the password of the active Customer */
   updateCustomerPassword: UpdateCustomerPasswordResult;
+  updateOrderPlacedAtIST: Scalars['DateTime'];
   /**
    * Verify a Customer email address with the token sent to that address. Only applicable if `authOptions.requireVerification` is set to true.
    *
@@ -1730,9 +2033,18 @@ export type MutationApplyCouponCodeArgs = {
   couponCode: Scalars['String'];
 };
 
+export type MutationApplyLoyaltyPointsToActiveOrderArgs = {
+  amount: Scalars['Int'];
+};
+
 export type MutationAuthenticateArgs = {
   input: AuthenticationInput;
   rememberMe?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type MutationCancelOrderOnClientRequestArgs = {
+  orderId: Scalars['ID'];
+  value: Scalars['Int'];
 };
 
 export type MutationCreateCustomerAddressArgs = {
@@ -1743,10 +2055,19 @@ export type MutationDeleteCustomerAddressArgs = {
   id: Scalars['ID'];
 };
 
+export type MutationGenerateRazorpayOrderIdArgs = {
+  orderId: Scalars['ID'];
+};
+
 export type MutationLoginArgs = {
   password: Scalars['String'];
   rememberMe?: InputMaybe<Scalars['Boolean']>;
   username: Scalars['String'];
+};
+
+export type MutationOtherInstructionsArgs = {
+  orderId: Scalars['ID'];
+  value: Scalars['String'];
 };
 
 export type MutationRefreshCustomerVerificationArgs = {
@@ -1774,9 +2095,17 @@ export type MutationRequestUpdateCustomerEmailAddressArgs = {
   password: Scalars['String'];
 };
 
+export type MutationResendPhoneOtpArgs = {
+  phoneNumber: Scalars['String'];
+};
+
 export type MutationResetPasswordArgs = {
   password: Scalars['String'];
   token: Scalars['String'];
+};
+
+export type MutationSendPhoneOtpArgs = {
+  phoneNumber: Scalars['String'];
 };
 
 export type MutationSetCustomerForOrderArgs = {
@@ -1799,6 +2128,16 @@ export type MutationSetOrderShippingMethodArgs = {
   shippingMethodId: Array<Scalars['ID']>;
 };
 
+export type MutationToggleFavoriteArgs = {
+  options?: InputMaybe<FavoriteListOptions>;
+  productId: Scalars['ID'];
+};
+
+export type MutationTogglePromotionStateArgs = {
+  promotionId: Scalars['ID'];
+  value: Scalars['Boolean'];
+};
+
 export type MutationTransitionOrderToStateArgs = {
   state: Scalars['String'];
 };
@@ -1818,6 +2157,10 @@ export type MutationUpdateCustomerEmailAddressArgs = {
 export type MutationUpdateCustomerPasswordArgs = {
   currentPassword: Scalars['String'];
   newPassword: Scalars['String'];
+};
+
+export type MutationUpdateOrderPlacedAtIstArgs = {
+  orderId: Scalars['ID'];
 };
 
 export type MutationVerifyCustomerAccountArgs = {
@@ -1906,7 +2249,7 @@ export type Order = Node & {
   couponCodes: Array<Scalars['String']>;
   createdAt: Scalars['DateTime'];
   currencyCode: CurrencyCode;
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<OrderCustomFields>;
   customer?: Maybe<Customer>;
   discounts: Array<Discount>;
   fulfillments?: Maybe<Array<Fulfillment>>;
@@ -1972,13 +2315,35 @@ export type OrderAddress = {
   streetLine2?: Maybe<Scalars['String']>;
 };
 
+export type OrderCustomFields = {
+  __typename?: 'OrderCustomFields';
+  clientRequestToCancel?: Maybe<Scalars['Int']>;
+  deviceMedium?: Maybe<Scalars['String']>;
+  loyaltyPointsEarned?: Maybe<Scalars['Int']>;
+  loyaltyPointsUsed?: Maybe<Scalars['Int']>;
+  otherInstructions?: Maybe<Scalars['String']>;
+  placedAtISTFormatted?: Maybe<Scalars['DateTime']>;
+  razorpayStatus?: Maybe<Scalars['String']>;
+  razorpay_order_id?: Maybe<Scalars['String']>;
+};
+
 export type OrderFilterParameter = {
+  _and?: InputMaybe<Array<OrderFilterParameter>>;
+  _or?: InputMaybe<Array<OrderFilterParameter>>;
   active?: InputMaybe<BooleanOperators>;
+  clientRequestToCancel?: InputMaybe<NumberOperators>;
   code?: InputMaybe<StringOperators>;
   createdAt?: InputMaybe<DateOperators>;
   currencyCode?: InputMaybe<StringOperators>;
+  deviceMedium?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
+  loyaltyPointsEarned?: InputMaybe<NumberOperators>;
+  loyaltyPointsUsed?: InputMaybe<NumberOperators>;
   orderPlacedAt?: InputMaybe<DateOperators>;
+  otherInstructions?: InputMaybe<StringOperators>;
+  placedAtISTFormatted?: InputMaybe<DateOperators>;
+  razorpayStatus?: InputMaybe<StringOperators>;
+  razorpay_order_id?: InputMaybe<StringOperators>;
   shipping?: InputMaybe<NumberOperators>;
   shippingWithTax?: InputMaybe<NumberOperators>;
   state?: InputMaybe<StringOperators>;
@@ -1989,6 +2354,14 @@ export type OrderFilterParameter = {
   totalWithTax?: InputMaybe<NumberOperators>;
   type?: InputMaybe<StringOperators>;
   updatedAt?: InputMaybe<DateOperators>;
+};
+
+/** Returned when an order operation is rejected by an OrderInterceptor method. */
+export type OrderInterceptorError = ErrorResult & {
+  __typename?: 'OrderInterceptorError';
+  errorCode: ErrorCode;
+  interceptorError: Scalars['String'];
+  message: Scalars['String'];
 };
 
 /** Returned when the maximum order size limit has been reached. */
@@ -2048,6 +2421,7 @@ export type OrderLine = Node & {
   proratedUnitPrice: Scalars['Money'];
   /** The proratedUnitPrice including tax */
   proratedUnitPriceWithTax: Scalars['Money'];
+  /** The quantity of items purchased */
   quantity: Scalars['Int'];
   taxLines: Array<TaxLine>;
   taxRate: Scalars['Float'];
@@ -2071,7 +2445,7 @@ export type OrderList = PaginatedList & {
 export type OrderListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<OrderFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -2096,10 +2470,18 @@ export type OrderPaymentStateError = ErrorResult & {
 };
 
 export type OrderSortParameter = {
+  clientRequestToCancel?: InputMaybe<SortOrder>;
   code?: InputMaybe<SortOrder>;
   createdAt?: InputMaybe<SortOrder>;
+  deviceMedium?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
+  loyaltyPointsEarned?: InputMaybe<SortOrder>;
+  loyaltyPointsUsed?: InputMaybe<SortOrder>;
   orderPlacedAt?: InputMaybe<SortOrder>;
+  otherInstructions?: InputMaybe<SortOrder>;
+  placedAtISTFormatted?: InputMaybe<SortOrder>;
+  razorpayStatus?: InputMaybe<SortOrder>;
+  razorpay_order_id?: InputMaybe<SortOrder>;
   shipping?: InputMaybe<SortOrder>;
   shippingWithTax?: InputMaybe<SortOrder>;
   state?: InputMaybe<SortOrder>;
@@ -2187,6 +2569,7 @@ export type Payment = Node & {
   __typename?: 'Payment';
   amount: Scalars['Money'];
   createdAt: Scalars['DateTime'];
+  customFields?: Maybe<Scalars['JSON']>;
   errorMessage?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
   metadata?: Maybe<Scalars['JSON']>;
@@ -2482,6 +2865,13 @@ export enum Permission {
   UpdateZone = 'UpdateZone',
 }
 
+export type PhoneOtpInput = {
+  code: Scalars['String'];
+  firstName?: InputMaybe<Scalars['String']>;
+  lastName?: InputMaybe<Scalars['String']>;
+  phoneNumber: Scalars['String'];
+};
+
 /** The price range where the result has more than one price */
 export type PriceRange = {
   __typename?: 'PriceRange';
@@ -2496,6 +2886,7 @@ export type Product = Node & {
   createdAt: Scalars['DateTime'];
   customFields?: Maybe<Scalars['JSON']>;
   description: Scalars['String'];
+  enabled: Scalars['Boolean'];
   facetValues: Array<FacetValue>;
   featuredAsset?: Maybe<Asset>;
   id: Scalars['ID'];
@@ -2516,8 +2907,11 @@ export type ProductVariantListArgs = {
 };
 
 export type ProductFilterParameter = {
+  _and?: InputMaybe<Array<ProductFilterParameter>>;
+  _or?: InputMaybe<Array<ProductFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   description?: InputMaybe<StringOperators>;
+  enabled?: InputMaybe<BooleanOperators>;
   id?: InputMaybe<IdOperators>;
   languageCode?: InputMaybe<StringOperators>;
   name?: InputMaybe<StringOperators>;
@@ -2534,7 +2928,7 @@ export type ProductList = PaginatedList & {
 export type ProductListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<ProductFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -2614,7 +3008,7 @@ export type ProductVariant = Node & {
   assets: Array<Asset>;
   createdAt: Scalars['DateTime'];
   currencyCode: CurrencyCode;
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<ProductVariantCustomFields>;
   facetValues: Array<FacetValue>;
   featuredAsset?: Maybe<Asset>;
   id: Scalars['ID'];
@@ -2633,9 +3027,17 @@ export type ProductVariant = Node & {
   updatedAt: Scalars['DateTime'];
 };
 
+export type ProductVariantCustomFields = {
+  __typename?: 'ProductVariantCustomFields';
+  hsnCode?: Maybe<Scalars['String']>;
+};
+
 export type ProductVariantFilterParameter = {
+  _and?: InputMaybe<Array<ProductVariantFilterParameter>>;
+  _or?: InputMaybe<Array<ProductVariantFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   currencyCode?: InputMaybe<StringOperators>;
+  hsnCode?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
   languageCode?: InputMaybe<StringOperators>;
   name?: InputMaybe<StringOperators>;
@@ -2656,7 +3058,7 @@ export type ProductVariantList = PaginatedList & {
 export type ProductVariantListOptions = {
   /** Allows the results to be filtered */
   filter?: InputMaybe<ProductVariantFilterParameter>;
-  /** Specifies whether multiple "filter" arguments should be combines with a logical AND or OR operation. Defaults to AND. */
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
   filterOperator?: InputMaybe<LogicalOperator>;
   /** Skips the first n results, for use in pagination */
   skip?: InputMaybe<Scalars['Int']>;
@@ -2668,6 +3070,7 @@ export type ProductVariantListOptions = {
 
 export type ProductVariantSortParameter = {
   createdAt?: InputMaybe<SortOrder>;
+  hsnCode?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
   name?: InputMaybe<SortOrder>;
   price?: InputMaybe<SortOrder>;
@@ -2693,7 +3096,7 @@ export type Promotion = Node & {
   conditions: Array<ConfigurableOperation>;
   couponCode?: Maybe<Scalars['String']>;
   createdAt: Scalars['DateTime'];
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<PromotionCustomFields>;
   description: Scalars['String'];
   enabled: Scalars['Boolean'];
   endsAt?: Maybe<Scalars['DateTime']>;
@@ -2703,6 +3106,12 @@ export type Promotion = Node & {
   startsAt?: Maybe<Scalars['DateTime']>;
   translations: Array<PromotionTranslation>;
   updatedAt: Scalars['DateTime'];
+  usageLimit?: Maybe<Scalars['Int']>;
+};
+
+export type PromotionCustomFields = {
+  __typename?: 'PromotionCustomFields';
+  shouldApply?: Maybe<Scalars['Boolean']>;
 };
 
 export type PromotionList = PaginatedList & {
@@ -2758,10 +3167,13 @@ export type Query = {
   activeOrder?: Maybe<Order>;
   /** An array of supported Countries */
   availableCountries: Array<Country>;
+  checkCollectionIsPrivate: Scalars['Boolean'];
+  checkUniquePhone: Scalars['Boolean'];
   /** Returns a Collection either by its id or slug. If neither 'id' nor 'slug' is specified, an error will result. */
   collection?: Maybe<Collection>;
   /** A list of Collections available to the shop */
   collections: CollectionList;
+  customBanners: Array<CustomBanner>;
   /** Returns a list of payment methods and their eligibility based on the current active Order */
   eligiblePaymentMethods: Array<PaymentMethodQuote>;
   /** Returns a list of eligible shipping methods based on the current active Order */
@@ -2770,7 +3182,14 @@ export type Query = {
   facet?: Maybe<Facet>;
   /** A list of Facets available to the shop */
   facets: FacetList;
+  frequentlyOrderedProducts: Array<FrequentlyOrderedProduct>;
   generateBraintreeClientToken?: Maybe<Scalars['String']>;
+  getChannelList: Array<Channel>;
+  getChannelsByCustomerEmail: Array<Channel>;
+  getChannelsByCustomerPhoneNumber: Array<Channel>;
+  getCouponCodeList: CoupcodesList;
+  getPasswordResetToken: Scalars['String'];
+  loyaltyPointsConfig?: Maybe<LoyaltyPointsConfig>;
   /** Returns information about the current authenticated User */
   me?: Maybe<CurrentUser>;
   /** Returns the possible next states that the activeOrder can transition to */
@@ -2795,6 +3214,14 @@ export type Query = {
   search: SearchResponse;
 };
 
+export type QueryCheckCollectionIsPrivateArgs = {
+  collectionId: Scalars['ID'];
+};
+
+export type QueryCheckUniquePhoneArgs = {
+  phone: Scalars['String'];
+};
+
 export type QueryCollectionArgs = {
   id?: InputMaybe<Scalars['ID']>;
   slug?: InputMaybe<Scalars['String']>;
@@ -2810,6 +3237,14 @@ export type QueryFacetArgs = {
 
 export type QueryFacetsArgs = {
   options?: InputMaybe<FacetListOptions>;
+};
+
+export type QueryGetChannelsByCustomerEmailArgs = {
+  email: Scalars['String'];
+};
+
+export type QueryGetChannelsByCustomerPhoneNumberArgs = {
+  phoneNumber: Scalars['String'];
 };
 
 export type QueryOrderArgs = {
@@ -2833,6 +3268,19 @@ export type QuerySearchArgs = {
   input: SearchInput;
 };
 
+export type RazorpayOrderIdGenerationError = {
+  __typename?: 'RazorpayOrderIdGenerationError';
+  errorCode?: Maybe<Scalars['String']>;
+  message?: Maybe<Scalars['String']>;
+};
+
+export type RazorpayOrderIdSuccess = {
+  __typename?: 'RazorpayOrderIdSuccess';
+  keyId: Scalars['String'];
+  keySecret: Scalars['String'];
+  razorpayOrderId: Scalars['String'];
+};
+
 export type RefreshCustomerVerificationResult =
   | NativeAuthStrategyError
   | Success;
@@ -2841,6 +3289,7 @@ export type Refund = Node & {
   __typename?: 'Refund';
   adjustment: Scalars['Money'];
   createdAt: Scalars['DateTime'];
+  customFields?: Maybe<Scalars['JSON']>;
   id: Scalars['ID'];
   items: Scalars['Money'];
   lines: Array<RefundLine>;
@@ -2893,7 +3342,12 @@ export type RegisterCustomerAccountResult =
   | PasswordValidationError
   | Success;
 
+export type RegisterCustomerCustomFieldsInput = {
+  loyaltyPointsAvailable?: InputMaybe<Scalars['Int']>;
+};
+
 export type RegisterCustomerInput = {
+  customFields?: InputMaybe<RegisterCustomerCustomFieldsInput>;
   emailAddress: Scalars['String'];
   firstName?: InputMaybe<Scalars['String']>;
   lastName?: InputMaybe<Scalars['String']>;
@@ -2912,12 +3366,16 @@ export type RelationCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   scalarFields: Array<Scalars['String']>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
 
-export type RemoveOrderItemsResult = Order | OrderModificationError;
+export type RemoveOrderItemsResult =
+  | Order
+  | OrderInterceptorError
+  | OrderModificationError;
 
 export type RequestPasswordResetResult = NativeAuthStrategyError | Success;
 
@@ -2957,6 +3415,7 @@ export type SearchInput = {
   collectionSlug?: InputMaybe<Scalars['String']>;
   facetValueFilters?: InputMaybe<Array<FacetValueFilterInput>>;
   groupByProduct?: InputMaybe<Scalars['Boolean']>;
+  inStock?: InputMaybe<Scalars['Boolean']>;
   skip?: InputMaybe<Scalars['Int']>;
   sort?: InputMaybe<SearchResultSortParameter>;
   take?: InputMaybe<Scalars['Int']>;
@@ -2970,22 +3429,10 @@ export type SearchReindexResponse = {
 
 export type SearchResponse = {
   __typename?: 'SearchResponse';
-  cacheIdentifier?: Maybe<SearchResponseCacheIdentifier>;
   collections: Array<CollectionResult>;
   facetValues: Array<FacetValueResult>;
   items: Array<SearchResult>;
   totalItems: Scalars['Int'];
-};
-
-/**
- * This type is here to allow us to easily purge the Stellate cache
- * of any search results where the collectionSlug is used. We cannot rely on
- * simply purging the SearchResult type, because in the case of an empty 'items'
- * array, Stellate cannot know that that particular query now needs to be purged.
- */
-export type SearchResponseCacheIdentifier = {
-  __typename?: 'SearchResponseCacheIdentifier';
-  collectionSlug?: Maybe<Scalars['String']>;
 };
 
 export type SearchResult = {
@@ -2996,6 +3443,7 @@ export type SearchResult = {
   description: Scalars['String'];
   facetIds: Array<Scalars['ID']>;
   facetValueIds: Array<Scalars['ID']>;
+  inStock: Scalars['Boolean'];
   price: SearchResultPrice;
   priceWithTax: SearchResultPrice;
   productAsset?: Maybe<SearchResultAsset>;
@@ -3049,6 +3497,7 @@ export type SetOrderShippingMethodResult =
 
 export type ShippingLine = {
   __typename?: 'ShippingLine';
+  customFields?: Maybe<Scalars['JSON']>;
   discountedPrice: Scalars['Money'];
   discountedPriceWithTax: Scalars['Money'];
   discounts: Array<Discount>;
@@ -3064,7 +3513,7 @@ export type ShippingMethod = Node & {
   checker: ConfigurableOperation;
   code: Scalars['String'];
   createdAt: Scalars['DateTime'];
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<ShippingMethodCustomFields>;
   description: Scalars['String'];
   fulfillmentHandlerCode: Scalars['String'];
   id: Scalars['ID'];
@@ -3072,6 +3521,14 @@ export type ShippingMethod = Node & {
   name: Scalars['String'];
   translations: Array<ShippingMethodTranslation>;
   updatedAt: Scalars['DateTime'];
+};
+
+export type ShippingMethodCustomFields = {
+  __typename?: 'ShippingMethodCustomFields';
+  dataType1?: Maybe<Scalars['String']>;
+  dataType2?: Maybe<Scalars['String']>;
+  dateType?: Maybe<Scalars['String']>;
+  messageTemplateId?: Maybe<Scalars['String']>;
 };
 
 export type ShippingMethodList = PaginatedList & {
@@ -3083,7 +3540,7 @@ export type ShippingMethodList = PaginatedList & {
 export type ShippingMethodQuote = {
   __typename?: 'ShippingMethodQuote';
   code: Scalars['String'];
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<ShippingMethodCustomFields>;
   description: Scalars['String'];
   id: Scalars['ID'];
   /** Any optional metadata returned by the ShippingCalculator in the ShippingCalculationResult */
@@ -3126,6 +3583,7 @@ export type StringCustomFieldConfig = CustomField & {
   options?: Maybe<Array<StringFieldOption>>;
   pattern?: Maybe<Scalars['String']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
@@ -3152,6 +3610,51 @@ export type StringOperators = {
   notIn?: InputMaybe<Array<Scalars['String']>>;
   regex?: InputMaybe<Scalars['String']>;
 };
+
+export type StringStructFieldConfig = StructField & {
+  __typename?: 'StringStructFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  length?: Maybe<Scalars['Int']>;
+  list: Scalars['Boolean'];
+  name: Scalars['String'];
+  options?: Maybe<Array<StringFieldOption>>;
+  pattern?: Maybe<Scalars['String']>;
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+export type StructCustomFieldConfig = CustomField & {
+  __typename?: 'StructCustomFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  fields: Array<StructFieldConfig>;
+  internal?: Maybe<Scalars['Boolean']>;
+  label?: Maybe<Array<LocalizedString>>;
+  list: Scalars['Boolean'];
+  name: Scalars['String'];
+  nullable?: Maybe<Scalars['Boolean']>;
+  readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+export type StructField = {
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  list?: Maybe<Scalars['Boolean']>;
+  name: Scalars['String'];
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+export type StructFieldConfig =
+  | BooleanStructFieldConfig
+  | DateTimeStructFieldConfig
+  | FloatStructFieldConfig
+  | IntStructFieldConfig
+  | StringStructFieldConfig
+  | TextStructFieldConfig;
 
 /** Indicates that an operation succeeded, where we do not want to return any more specific information. */
 export type Success = {
@@ -3231,12 +3734,30 @@ export type TextCustomFieldConfig = CustomField & {
   name: Scalars['String'];
   nullable?: Maybe<Scalars['Boolean']>;
   readonly?: Maybe<Scalars['Boolean']>;
+  requiresPermission?: Maybe<Array<Permission>>;
+  type: Scalars['String'];
+  ui?: Maybe<Scalars['JSON']>;
+};
+
+export type TextStructFieldConfig = StructField & {
+  __typename?: 'TextStructFieldConfig';
+  description?: Maybe<Array<LocalizedString>>;
+  label?: Maybe<Array<LocalizedString>>;
+  list: Scalars['Boolean'];
+  name: Scalars['String'];
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
 };
 
 export type TransitionOrderToStateResult = Order | OrderStateTransitionError;
 
+/**
+ * Input used to update an Address.
+ *
+ * The countryCode must correspond to a `code` property of a Country that has been defined in the
+ * Vendure server. The `code` property is typically a 2-character ISO code such as "GB", "US", "DE" etc.
+ * If an invalid code is passed, the mutation will fail.
+ */
 export type UpdateAddressInput = {
   city?: InputMaybe<Scalars['String']>;
   company?: InputMaybe<Scalars['String']>;
@@ -3253,6 +3774,10 @@ export type UpdateAddressInput = {
   streetLine2?: InputMaybe<Scalars['String']>;
 };
 
+export type UpdateCustomerCustomFieldsInput = {
+  loyaltyPointsAvailable?: InputMaybe<Scalars['Int']>;
+};
+
 export type UpdateCustomerEmailAddressResult =
   | IdentifierChangeTokenExpiredError
   | IdentifierChangeTokenInvalidError
@@ -3260,7 +3785,7 @@ export type UpdateCustomerEmailAddressResult =
   | Success;
 
 export type UpdateCustomerInput = {
-  customFields?: InputMaybe<Scalars['JSON']>;
+  customFields?: InputMaybe<UpdateCustomerCustomFieldsInput>;
   firstName?: InputMaybe<Scalars['String']>;
   lastName?: InputMaybe<Scalars['String']>;
   phoneNumber?: InputMaybe<Scalars['String']>;
@@ -3273,14 +3798,24 @@ export type UpdateCustomerPasswordResult =
   | PasswordValidationError
   | Success;
 
+export type UpdateOrderCustomFieldsInput = {
+  clientRequestToCancel?: InputMaybe<Scalars['Int']>;
+  deviceMedium?: InputMaybe<Scalars['String']>;
+  loyaltyPointsEarned?: InputMaybe<Scalars['Int']>;
+  loyaltyPointsUsed?: InputMaybe<Scalars['Int']>;
+  otherInstructions?: InputMaybe<Scalars['String']>;
+  razorpay_order_id?: InputMaybe<Scalars['String']>;
+};
+
 export type UpdateOrderInput = {
-  customFields?: InputMaybe<Scalars['JSON']>;
+  customFields?: InputMaybe<UpdateOrderCustomFieldsInput>;
 };
 
 export type UpdateOrderItemsResult =
   | InsufficientStockError
   | NegativeQuantityError
   | Order
+  | OrderInterceptorError
   | OrderLimitError
   | OrderModificationError;
 
@@ -3335,6 +3870,10 @@ export type Zone = Node & {
   name: Scalars['String'];
   updatedAt: Scalars['DateTime'];
 };
+
+export type GenerateRazorpayOrderIdResult =
+  | RazorpayOrderIdGenerationError
+  | RazorpayOrderIdSuccess;
 
 export type LoginMutationVariables = Exact<{
   email: Scalars['String'];
@@ -3570,6 +4109,12 @@ export type EligibleShippingMethodsQuery = {
     metadata?: any | null;
     price: number;
     priceWithTax: number;
+    customFields?: {
+      __typename?: 'ShippingMethodCustomFields';
+      messageTemplateId?: string | null;
+      dataType1?: string | null;
+      dataType2?: string | null;
+    } | null;
   }>;
 };
 
@@ -3639,11 +4184,42 @@ export type AddPaymentToOrderMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -3743,11 +4319,42 @@ export type TransitionOrderToStateMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -3886,7 +4493,704 @@ export type CollectionQuery = {
   } | null;
 };
 
-export type ActiveCustomerQueryVariables = Exact<{ [key: string]: never }>;
+export type GetChannelListQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetChannelListQuery = {
+  __typename?: 'Query';
+  getChannelList: Array<{
+    __typename?: 'Channel';
+    id: string;
+    token: string;
+    code: string;
+  }>;
+};
+
+export type GetChannelsByCustomerEmailQueryVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+export type GetChannelsByCustomerEmailQuery = {
+  __typename?: 'Query';
+  getChannelsByCustomerEmail: Array<{
+    __typename?: 'Channel';
+    id: string;
+    code: string;
+    token: string;
+    defaultCurrencyCode: CurrencyCode;
+  }>;
+};
+
+export type GetPasswordResetTokenQueryVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type GetPasswordResetTokenQuery = {
+  __typename?: 'Query';
+  getPasswordResetToken: string;
+};
+
+export type RequestPasswordResetMutationVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+export type RequestPasswordResetMutation = {
+  __typename?: 'Mutation';
+  requestPasswordReset?:
+    | { __typename: 'NativeAuthStrategyError' }
+    | { __typename: 'Success' }
+    | null;
+};
+
+export type ResetPasswordMutationVariables = Exact<{
+  token: Scalars['String'];
+  password: Scalars['String'];
+}>;
+
+export type ResetPasswordMutation = {
+  __typename?: 'Mutation';
+  resetPassword:
+    | {
+        __typename: 'CurrentUser';
+        id: string;
+        channels: Array<{
+          __typename?: 'CurrentUserChannel';
+          token: string;
+          code: string;
+          permissions: Array<Permission>;
+        }>;
+      }
+    | {
+        __typename: 'NativeAuthStrategyError';
+        errorCode: ErrorCode;
+        message: string;
+      }
+    | { __typename: 'NotVerifiedError'; errorCode: ErrorCode; message: string }
+    | {
+        __typename: 'PasswordResetTokenExpiredError';
+        errorCode: ErrorCode;
+        message: string;
+      }
+    | {
+        __typename: 'PasswordResetTokenInvalidError';
+        errorCode: ErrorCode;
+        message: string;
+      }
+    | {
+        __typename: 'PasswordValidationError';
+        errorCode: ErrorCode;
+        message: string;
+      };
+};
+
+type ErrorResult_AlreadyLoggedInError_Fragment = {
+  __typename: 'AlreadyLoggedInError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_CouponCodeExpiredError_Fragment = {
+  __typename: 'CouponCodeExpiredError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_CouponCodeInvalidError_Fragment = {
+  __typename: 'CouponCodeInvalidError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_CouponCodeLimitError_Fragment = {
+  __typename: 'CouponCodeLimitError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_EmailAddressConflictError_Fragment = {
+  __typename: 'EmailAddressConflictError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_GuestCheckoutError_Fragment = {
+  __typename: 'GuestCheckoutError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_IdentifierChangeTokenExpiredError_Fragment = {
+  __typename: 'IdentifierChangeTokenExpiredError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_IdentifierChangeTokenInvalidError_Fragment = {
+  __typename: 'IdentifierChangeTokenInvalidError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_IneligiblePaymentMethodError_Fragment = {
+  __typename: 'IneligiblePaymentMethodError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_IneligibleShippingMethodError_Fragment = {
+  __typename: 'IneligibleShippingMethodError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_InsufficientStockError_Fragment = {
+  __typename: 'InsufficientStockError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_InvalidCredentialsError_Fragment = {
+  __typename: 'InvalidCredentialsError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_MissingPasswordError_Fragment = {
+  __typename: 'MissingPasswordError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_NativeAuthStrategyError_Fragment = {
+  __typename: 'NativeAuthStrategyError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_NegativeQuantityError_Fragment = {
+  __typename: 'NegativeQuantityError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_NoActiveOrderError_Fragment = {
+  __typename: 'NoActiveOrderError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_NotVerifiedError_Fragment = {
+  __typename: 'NotVerifiedError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_OrderInterceptorError_Fragment = {
+  __typename: 'OrderInterceptorError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_OrderLimitError_Fragment = {
+  __typename: 'OrderLimitError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_OrderModificationError_Fragment = {
+  __typename: 'OrderModificationError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_OrderPaymentStateError_Fragment = {
+  __typename: 'OrderPaymentStateError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_OrderStateTransitionError_Fragment = {
+  __typename: 'OrderStateTransitionError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_PasswordAlreadySetError_Fragment = {
+  __typename: 'PasswordAlreadySetError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_PasswordResetTokenExpiredError_Fragment = {
+  __typename: 'PasswordResetTokenExpiredError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_PasswordResetTokenInvalidError_Fragment = {
+  __typename: 'PasswordResetTokenInvalidError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_PasswordValidationError_Fragment = {
+  __typename: 'PasswordValidationError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_PaymentDeclinedError_Fragment = {
+  __typename: 'PaymentDeclinedError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_PaymentFailedError_Fragment = {
+  __typename: 'PaymentFailedError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_VerificationTokenExpiredError_Fragment = {
+  __typename: 'VerificationTokenExpiredError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+type ErrorResult_VerificationTokenInvalidError_Fragment = {
+  __typename: 'VerificationTokenInvalidError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
+export type ErrorResultFragment =
+  | ErrorResult_AlreadyLoggedInError_Fragment
+  | ErrorResult_CouponCodeExpiredError_Fragment
+  | ErrorResult_CouponCodeInvalidError_Fragment
+  | ErrorResult_CouponCodeLimitError_Fragment
+  | ErrorResult_EmailAddressConflictError_Fragment
+  | ErrorResult_GuestCheckoutError_Fragment
+  | ErrorResult_IdentifierChangeTokenExpiredError_Fragment
+  | ErrorResult_IdentifierChangeTokenInvalidError_Fragment
+  | ErrorResult_IneligiblePaymentMethodError_Fragment
+  | ErrorResult_IneligibleShippingMethodError_Fragment
+  | ErrorResult_InsufficientStockError_Fragment
+  | ErrorResult_InvalidCredentialsError_Fragment
+  | ErrorResult_MissingPasswordError_Fragment
+  | ErrorResult_NativeAuthStrategyError_Fragment
+  | ErrorResult_NegativeQuantityError_Fragment
+  | ErrorResult_NoActiveOrderError_Fragment
+  | ErrorResult_NotVerifiedError_Fragment
+  | ErrorResult_OrderInterceptorError_Fragment
+  | ErrorResult_OrderLimitError_Fragment
+  | ErrorResult_OrderModificationError_Fragment
+  | ErrorResult_OrderPaymentStateError_Fragment
+  | ErrorResult_OrderStateTransitionError_Fragment
+  | ErrorResult_PasswordAlreadySetError_Fragment
+  | ErrorResult_PasswordResetTokenExpiredError_Fragment
+  | ErrorResult_PasswordResetTokenInvalidError_Fragment
+  | ErrorResult_PasswordValidationError_Fragment
+  | ErrorResult_PaymentDeclinedError_Fragment
+  | ErrorResult_PaymentFailedError_Fragment
+  | ErrorResult_VerificationTokenExpiredError_Fragment
+  | ErrorResult_VerificationTokenInvalidError_Fragment;
+
+export type SendPhoneOtpMutationVariables = Exact<{
+  phoneNumber: Scalars['String'];
+}>;
+
+export type SendPhoneOtpMutation = {
+  __typename?: 'Mutation';
+  sendPhoneOtp?: string | null;
+};
+
+export type ResendPhoneOtpMutationVariables = Exact<{
+  phoneNumber: Scalars['String'];
+}>;
+
+export type ResendPhoneOtpMutation = {
+  __typename?: 'Mutation';
+  resendPhoneOtp?: string | null;
+};
+
+export type GetChannelsByCustomerPhonenumberQueryVariables = Exact<{
+  phoneNumber: Scalars['String'];
+}>;
+
+export type GetChannelsByCustomerPhonenumberQuery = {
+  __typename?: 'Query';
+  getChannelsByCustomerPhoneNumber: Array<{
+    __typename?: 'Channel';
+    id: string;
+    code: string;
+    token: string;
+    defaultCurrencyCode: CurrencyCode;
+  }>;
+};
+
+export type CheckUniquePhoneQueryVariables = Exact<{
+  phoneNumber: Scalars['String'];
+}>;
+
+export type CheckUniquePhoneQuery = {
+  __typename?: 'Query';
+  checkUniquePhone: boolean;
+};
+
+export type CustomBannersQueryVariables = Exact<{ [key: string]: never }>;
+
+export type CustomBannersQuery = {
+  __typename?: 'Query';
+  customBanners: Array<{
+    __typename?: 'CustomBanner';
+    id: string;
+    assets: Array<{
+      __typename?: 'Asset';
+      id: string;
+      name: string;
+      source: string;
+    }>;
+    channels: Array<{ __typename?: 'Channel'; id: string; code: string }>;
+  }>;
+};
+
+export type GenerateRazorpayOrderIdMutationVariables = Exact<{
+  orderId: Scalars['ID'];
+}>;
+
+export type GenerateRazorpayOrderIdMutation = {
+  __typename?: 'Mutation';
+  generateRazorpayOrderId:
+    | { __typename?: 'RazorpayOrderIdGenerationError'; message?: string | null }
+    | {
+        __typename?: 'RazorpayOrderIdSuccess';
+        razorpayOrderId: string;
+        keyId: string;
+        keySecret: string;
+      };
+};
+
+export type CancelOrderOnClientRequestMutationVariables = Exact<{
+  orderId: Scalars['ID'];
+  value: Scalars['Int'];
+}>;
+
+export type CancelOrderOnClientRequestMutation = {
+  __typename?: 'Mutation';
+  cancelOrderOnClientRequest: {
+    __typename: 'Order';
+    id: string;
+    code: string;
+    state: string;
+    active: boolean;
+    couponCodes: Array<string>;
+    totalQuantity: number;
+    subTotal: number;
+    subTotalWithTax: number;
+    total: number;
+    totalWithTax: number;
+    shipping: number;
+    shippingWithTax: number;
+    promotions: Array<{
+      __typename?: 'Promotion';
+      couponCode?: string | null;
+      name: string;
+      enabled: boolean;
+      actions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; value: string; name: string }>;
+      }>;
+      conditions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+      }>;
+    }>;
+    lines: Array<{
+      __typename: 'OrderLine';
+      id: string;
+      customFields?: any | null;
+      unitPrice: number;
+      unitPriceWithTax: number;
+      quantity: number;
+      linePriceWithTax: number;
+      discountedLinePriceWithTax: number;
+      featuredAsset?: {
+        __typename: 'Asset';
+        id: string;
+        width: number;
+        height: number;
+        name: string;
+        preview: string;
+        focalPoint?: { __typename: 'Coordinate'; x: number; y: number } | null;
+      } | null;
+      productVariant: {
+        __typename: 'ProductVariant';
+        id: string;
+        name: string;
+      };
+      discounts: Array<{
+        __typename: 'Discount';
+        amount: number;
+        amountWithTax: number;
+        description: string;
+        adjustmentSource: string;
+        type: AdjustmentType;
+      }>;
+    }>;
+    shippingLines: Array<{
+      __typename: 'ShippingLine';
+      priceWithTax: number;
+      shippingMethod: {
+        __typename: 'ShippingMethod';
+        id: string;
+        code: string;
+        name: string;
+        description: string;
+      };
+    }>;
+    discounts: Array<{
+      __typename: 'Discount';
+      amount: number;
+      amountWithTax: number;
+      description: string;
+      adjustmentSource: string;
+      type: AdjustmentType;
+    }>;
+    customFields?: {
+      __typename?: 'OrderCustomFields';
+      clientRequestToCancel?: number | null;
+    } | null;
+  };
+};
+
+export type CartFragment = {
+  __typename: 'Order';
+  id: string;
+  code: string;
+  state: string;
+  active: boolean;
+  couponCodes: Array<string>;
+  totalQuantity: number;
+  subTotal: number;
+  subTotalWithTax: number;
+  total: number;
+  totalWithTax: number;
+  shipping: number;
+  shippingWithTax: number;
+  promotions: Array<{
+    __typename?: 'Promotion';
+    couponCode?: string | null;
+    name: string;
+    enabled: boolean;
+    actions: Array<{
+      __typename?: 'ConfigurableOperation';
+      code: string;
+      args: Array<{ __typename?: 'ConfigArg'; value: string; name: string }>;
+    }>;
+    conditions: Array<{
+      __typename?: 'ConfigurableOperation';
+      code: string;
+      args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+    }>;
+  }>;
+  lines: Array<{
+    __typename: 'OrderLine';
+    id: string;
+    customFields?: any | null;
+    unitPrice: number;
+    unitPriceWithTax: number;
+    quantity: number;
+    linePriceWithTax: number;
+    discountedLinePriceWithTax: number;
+    featuredAsset?: {
+      __typename: 'Asset';
+      id: string;
+      width: number;
+      height: number;
+      name: string;
+      preview: string;
+      focalPoint?: { __typename: 'Coordinate'; x: number; y: number } | null;
+    } | null;
+    productVariant: { __typename: 'ProductVariant'; id: string; name: string };
+    discounts: Array<{
+      __typename: 'Discount';
+      amount: number;
+      amountWithTax: number;
+      description: string;
+      adjustmentSource: string;
+      type: AdjustmentType;
+    }>;
+  }>;
+  shippingLines: Array<{
+    __typename: 'ShippingLine';
+    priceWithTax: number;
+    shippingMethod: {
+      __typename: 'ShippingMethod';
+      id: string;
+      code: string;
+      name: string;
+      description: string;
+    };
+  }>;
+  discounts: Array<{
+    __typename: 'Discount';
+    amount: number;
+    amountWithTax: number;
+    description: string;
+    adjustmentSource: string;
+    type: AdjustmentType;
+  }>;
+  customFields?: {
+    __typename?: 'OrderCustomFields';
+    clientRequestToCancel?: number | null;
+  } | null;
+};
+
+export type AssetFragment = {
+  __typename: 'Asset';
+  id: string;
+  width: number;
+  height: number;
+  name: string;
+  preview: string;
+  focalPoint?: { __typename: 'Coordinate'; x: number; y: number } | null;
+};
+
+export type OtherInstructionsMutationVariables = Exact<{
+  orderId: Scalars['ID'];
+  value: Scalars['String'];
+}>;
+
+export type OtherInstructionsMutation = {
+  __typename?: 'Mutation';
+  otherInstructions: {
+    __typename?: 'Order';
+    id: string;
+    customFields?: {
+      __typename?: 'OrderCustomFields';
+      otherInstructions?: string | null;
+    } | null;
+  };
+};
+
+export type ToggleFavoriteMutationVariables = Exact<{
+  productId: Scalars['ID'];
+}>;
+
+export type ToggleFavoriteMutation = {
+  __typename?: 'Mutation';
+  toggleFavorite: {
+    __typename?: 'FavoriteList';
+    totalItems: number;
+    items: Array<{
+      __typename?: 'Favorite';
+      id: string;
+      product?: { __typename?: 'Product'; id: string; name: string } | null;
+    }>;
+  };
+};
+
+export type ApplyLoyaltyPointsMutationVariables = Exact<{
+  amount: Scalars['Int'];
+}>;
+
+export type ApplyLoyaltyPointsMutation = {
+  __typename?: 'Mutation';
+  applyLoyaltyPointsToActiveOrder: {
+    __typename?: 'Order';
+    id: string;
+    createdAt: any;
+    orderPlacedAt?: any | null;
+    discounts: Array<{ __typename?: 'Discount'; amountWithTax: number }>;
+    customFields?: {
+      __typename?: 'OrderCustomFields';
+      razorpay_order_id?: string | null;
+      otherInstructions?: string | null;
+      loyaltyPointsEarned?: number | null;
+    } | null;
+  };
+};
+
+export type RemoveLoyaltyPointsFromActiveOrderMutationVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type RemoveLoyaltyPointsFromActiveOrderMutation = {
+  __typename?: 'Mutation';
+  removeLoyaltyPointsFromActiveOrder?: {
+    __typename?: 'Order';
+    id: string;
+    totalWithTax: number;
+    discounts: Array<{ __typename?: 'Discount'; amountWithTax: number }>;
+  } | null;
+};
+
+export type LoyaltyPointsConfigQueryVariables = Exact<{ [key: string]: never }>;
+
+export type LoyaltyPointsConfigQuery = {
+  __typename?: 'Query';
+  loyaltyPointsConfig?: {
+    __typename?: 'LoyaltyPointsConfig';
+    id: string;
+    createdAt: any;
+    updatedAt: any;
+    rupeesPerPoint: number;
+    pointsPerRupee: number;
+    channels: Array<{
+      __typename?: 'Channel';
+      id: string;
+      code: string;
+      token: string;
+      availableCurrencyCodes: Array<CurrencyCode>;
+      createdAt: any;
+      currencyCode: CurrencyCode;
+      defaultCurrencyCode: CurrencyCode;
+      defaultLanguageCode: LanguageCode;
+      pricesIncludeTax: boolean;
+      updatedAt: any;
+    }>;
+  } | null;
+};
+
+export type UpdateOrderPlacedAtIstMutationVariables = Exact<{
+  orderId: Scalars['ID'];
+}>;
+
+export type UpdateOrderPlacedAtIstMutation = {
+  __typename?: 'Mutation';
+  updateOrderPlacedAtIST: any;
+};
+
+export type GetFrequentlyOrderedProductsQueryVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type GetFrequentlyOrderedProductsQuery = {
+  __typename?: 'Query';
+  frequentlyOrderedProducts: Array<{
+    __typename?: 'FrequentlyOrderedProduct';
+    orderCount: number;
+    product: {
+      __typename?: 'Product';
+      id: string;
+      name: string;
+      slug: string;
+      variants: Array<{
+        __typename?: 'ProductVariant';
+        id: string;
+        name: string;
+        priceWithTax: number;
+        currencyCode: CurrencyCode;
+      }>;
+      featuredAsset?: { __typename?: 'Asset'; preview: string } | null;
+    };
+  }>;
+};
+
+export type ActiveCustomerQueryVariables = Exact<{
+  options?: InputMaybe<LoyaltyPointsTransactionListOptions>;
+}>;
 
 export type ActiveCustomerQuery = {
   __typename?: 'Query';
@@ -3895,6 +5199,38 @@ export type ActiveCustomerQuery = {
     id: string;
     firstName: string;
     lastName: string;
+    favorites: {
+      __typename?: 'FavoriteList';
+      totalItems: number;
+      items: Array<{
+        __typename?: 'Favorite';
+        id: string;
+        product?: { __typename?: 'Product'; id: string; name: string } | null;
+      }>;
+    };
+    customFields?: {
+      __typename?: 'CustomerCustomFields';
+      loyaltyPointsAvailable?: number | null;
+    } | null;
+    loyaltyPointsTransactions: {
+      __typename?: 'LoyaltyPointsTransactionList';
+      totalItems: number;
+      items: Array<{
+        __typename: 'LoyaltyPointsTransaction';
+        id: string;
+        createdAt: any;
+        updatedAt: any;
+        note: string;
+        value: number;
+        order?: {
+          __typename?: 'Order';
+          id: string;
+          code: string;
+          orderPlacedAt?: any | null;
+          state: string;
+        } | null;
+      }>;
+    };
   } | null;
 };
 
@@ -3955,11 +5291,24 @@ export type ActiveCustomerOrderListQuery = {
   __typename?: 'Query';
   activeCustomer?: {
     __typename?: 'Customer';
+    id: string;
+    firstName: string;
+    emailAddress: string;
+    favorites: {
+      __typename?: 'FavoriteList';
+      totalItems: number;
+      items: Array<{
+        __typename?: 'Favorite';
+        id: string;
+        product?: { __typename?: 'Product'; id: string; name: string } | null;
+      }>;
+    };
     orders: {
       __typename?: 'OrderList';
       totalItems: number;
       items: Array<{
         __typename?: 'Order';
+        id: string;
         code: string;
         state: string;
         orderPlacedAt?: any | null;
@@ -3983,6 +5332,11 @@ export type ActiveCustomerOrderListQuery = {
           __typename?: 'Fulfillment';
           trackingCode?: string | null;
         }> | null;
+        customFields?: {
+          __typename?: 'OrderCustomFields';
+          clientRequestToCancel?: number | null;
+          otherInstructions?: string | null;
+        } | null;
         lines: Array<{
           __typename?: 'OrderLine';
           quantity: number;
@@ -4057,11 +5411,42 @@ export type SetCustomerForOrderMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -4146,11 +5531,42 @@ export type SetOrderShippingAddressMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -4240,11 +5656,42 @@ export type SetOrderShippingMethodMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -4340,11 +5787,42 @@ export type AddItemToOrderMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -4402,6 +5880,11 @@ export type AddItemToOrderMutation = {
           metadata?: any | null;
         }> | null;
       }
+    | {
+        __typename?: 'OrderInterceptorError';
+        errorCode: ErrorCode;
+        message: string;
+      }
     | { __typename?: 'OrderLimitError'; errorCode: ErrorCode; message: string }
     | {
         __typename?: 'OrderModificationError';
@@ -4430,11 +5913,42 @@ export type RemoveOrderLineMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -4491,6 +6005,11 @@ export type RemoveOrderLineMutation = {
           amount: number;
           metadata?: any | null;
         }> | null;
+      }
+    | {
+        __typename?: 'OrderInterceptorError';
+        errorCode: ErrorCode;
+        message: string;
       }
     | {
         __typename?: 'OrderModificationError';
@@ -4530,11 +6049,42 @@ export type AdjustOrderLineMutation = {
         subTotalWithTax: number;
         shippingWithTax: number;
         totalWithTax: number;
+        couponCodes: Array<string>;
+        surcharges: Array<{
+          __typename?: 'Surcharge';
+          id: string;
+          price: number;
+        }>;
         taxSummary: Array<{
           __typename?: 'OrderTaxSummary';
           description: string;
           taxRate: number;
           taxTotal: number;
+        }>;
+        promotions: Array<{
+          __typename?: 'Promotion';
+          id: string;
+          couponCode?: string | null;
+          name: string;
+          enabled: boolean;
+          actions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              value: string;
+              name: string;
+            }>;
+          }>;
+          conditions: Array<{
+            __typename?: 'ConfigurableOperation';
+            code: string;
+            args: Array<{
+              __typename?: 'ConfigArg';
+              name: string;
+              value: string;
+            }>;
+          }>;
         }>;
         customer?: {
           __typename?: 'Customer';
@@ -4592,6 +6142,11 @@ export type AdjustOrderLineMutation = {
           metadata?: any | null;
         }> | null;
       }
+    | {
+        __typename?: 'OrderInterceptorError';
+        errorCode: ErrorCode;
+        message: string;
+      }
     | { __typename?: 'OrderLimitError'; errorCode: ErrorCode; message: string }
     | {
         __typename?: 'OrderModificationError';
@@ -4613,11 +6168,30 @@ export type OrderDetailFragment = {
   subTotalWithTax: number;
   shippingWithTax: number;
   totalWithTax: number;
+  couponCodes: Array<string>;
+  surcharges: Array<{ __typename?: 'Surcharge'; id: string; price: number }>;
   taxSummary: Array<{
     __typename?: 'OrderTaxSummary';
     description: string;
     taxRate: number;
     taxTotal: number;
+  }>;
+  promotions: Array<{
+    __typename?: 'Promotion';
+    id: string;
+    couponCode?: string | null;
+    name: string;
+    enabled: boolean;
+    actions: Array<{
+      __typename?: 'ConfigurableOperation';
+      code: string;
+      args: Array<{ __typename?: 'ConfigArg'; value: string; name: string }>;
+    }>;
+    conditions: Array<{
+      __typename?: 'ConfigurableOperation';
+      code: string;
+      args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+    }>;
   }>;
   customer?: {
     __typename?: 'Customer';
@@ -4678,6 +6252,7 @@ export type ActiveOrderQuery = {
   __typename?: 'Query';
   activeOrder?: {
     __typename: 'Order';
+    couponCodes: Array<string>;
     id: string;
     code: string;
     active: boolean;
@@ -4689,11 +6264,33 @@ export type ActiveOrderQuery = {
     subTotalWithTax: number;
     shippingWithTax: number;
     totalWithTax: number;
+    customFields?: {
+      __typename?: 'OrderCustomFields';
+      otherInstructions?: string | null;
+    } | null;
+    surcharges: Array<{ __typename?: 'Surcharge'; id: string; price: number }>;
     taxSummary: Array<{
       __typename?: 'OrderTaxSummary';
       description: string;
       taxRate: number;
       taxTotal: number;
+    }>;
+    promotions: Array<{
+      __typename?: 'Promotion';
+      id: string;
+      couponCode?: string | null;
+      name: string;
+      enabled: boolean;
+      actions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; value: string; name: string }>;
+      }>;
+      conditions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+      }>;
     }>;
     customer?: {
       __typename?: 'Customer';
@@ -4772,11 +6369,30 @@ export type OrderByCodeQuery = {
     subTotalWithTax: number;
     shippingWithTax: number;
     totalWithTax: number;
+    couponCodes: Array<string>;
+    surcharges: Array<{ __typename?: 'Surcharge'; id: string; price: number }>;
     taxSummary: Array<{
       __typename?: 'OrderTaxSummary';
       description: string;
       taxRate: number;
       taxTotal: number;
+    }>;
+    promotions: Array<{
+      __typename?: 'Promotion';
+      id: string;
+      couponCode?: string | null;
+      name: string;
+      enabled: boolean;
+      actions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; value: string; name: string }>;
+      }>;
+      conditions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+      }>;
     }>;
     customer?: {
       __typename?: 'Customer';
@@ -4836,11 +6452,71 @@ export type OrderByCodeQuery = {
   } | null;
 };
 
+export type GetCouponCodeListQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetCouponCodeListQuery = {
+  __typename?: 'Query';
+  getCouponCodeList: {
+    __typename: 'CoupcodesList';
+    totalItems: number;
+    items: Array<{
+      __typename?: 'Promotion';
+      id: string;
+      name: string;
+      couponCode?: string | null;
+      description: string;
+      enabled: boolean;
+      endsAt?: any | null;
+      startsAt?: any | null;
+      updatedAt: any;
+      usageLimit?: number | null;
+      conditions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+      }>;
+      actions: Array<{
+        __typename?: 'ConfigurableOperation';
+        code: string;
+        args: Array<{ __typename?: 'ConfigArg'; name: string; value: string }>;
+      }>;
+    }>;
+  };
+};
+
+export type ApplyCouponCodeMutationVariables = Exact<{
+  input: Scalars['String'];
+}>;
+
+export type ApplyCouponCodeMutation = {
+  __typename?: 'Mutation';
+  applyCouponCode:
+    | { __typename: 'CouponCodeExpiredError' }
+    | { __typename: 'CouponCodeInvalidError'; message: string }
+    | { __typename: 'CouponCodeLimitError' }
+    | {
+        __typename: 'Order';
+        id: string;
+        couponCodes: Array<string>;
+        total: number;
+      };
+};
+
+export type RemoveCouponCodeMutationVariables = Exact<{
+  couponCode: Scalars['String'];
+}>;
+
+export type RemoveCouponCodeMutation = {
+  __typename?: 'Mutation';
+  removeCouponCode?: { __typename: 'Order' } | null;
+};
+
 export type DetailedProductFragment = {
   __typename?: 'Product';
   id: string;
   name: string;
   description: string;
+  slug: string;
   collections: Array<{
     __typename?: 'Collection';
     id: string;
@@ -4890,6 +6566,7 @@ export type ProductQuery = {
     id: string;
     name: string;
     description: string;
+    slug: string;
     collections: Array<{
       __typename?: 'Collection';
       id: string;
@@ -5007,6 +6684,114 @@ export type SearchFacetValuesQuery = {
   };
 };
 
+export const ErrorResultFragmentDoc = gql`
+  fragment ErrorResult on ErrorResult {
+    errorCode
+    message
+    __typename
+  }
+`;
+export const AssetFragmentDoc = gql`
+  fragment Asset on Asset {
+    id
+    width
+    height
+    name
+    preview
+    focalPoint {
+      x
+      y
+      __typename
+    }
+    __typename
+  }
+`;
+export const CartFragmentDoc = gql`
+  fragment Cart on Order {
+    id
+    code
+    state
+    active
+    couponCodes
+    promotions {
+      couponCode
+      name
+      enabled
+      actions {
+        args {
+          value
+          name
+        }
+        code
+      }
+      conditions {
+        code
+        args {
+          name
+          value
+        }
+      }
+    }
+    lines {
+      id
+      customFields
+      featuredAsset {
+        ...Asset
+        __typename
+      }
+      unitPrice
+      unitPriceWithTax
+      quantity
+      linePriceWithTax
+      discountedLinePriceWithTax
+      productVariant {
+        id
+        name
+        __typename
+      }
+      discounts {
+        amount
+        amountWithTax
+        description
+        adjustmentSource
+        type
+        __typename
+      }
+      __typename
+    }
+    totalQuantity
+    subTotal
+    subTotalWithTax
+    total
+    totalWithTax
+    shipping
+    shippingWithTax
+    shippingLines {
+      priceWithTax
+      shippingMethod {
+        id
+        code
+        name
+        description
+        __typename
+      }
+      __typename
+    }
+    discounts {
+      amount
+      amountWithTax
+      description
+      adjustmentSource
+      type
+      __typename
+    }
+    customFields {
+      clientRequestToCancel
+    }
+    __typename
+  }
+  ${AssetFragmentDoc}
+`;
 export const OrderDetailFragmentDoc = gql`
   fragment OrderDetail on Order {
     __typename
@@ -5019,6 +6804,10 @@ export const OrderDetailFragmentDoc = gql`
     totalQuantity
     subTotal
     subTotalWithTax
+    surcharges {
+      id
+      price
+    }
     taxSummary {
       description
       taxRate
@@ -5026,6 +6815,27 @@ export const OrderDetailFragmentDoc = gql`
     }
     shippingWithTax
     totalWithTax
+    couponCodes
+    promotions {
+      id
+      couponCode
+      name
+      enabled
+      actions {
+        args {
+          value
+          name
+        }
+        code
+      }
+      conditions {
+        code
+        args {
+          name
+          value
+        }
+      }
+    }
     customer {
       id
       firstName
@@ -5083,6 +6893,7 @@ export const DetailedProductFragmentDoc = gql`
     id
     name
     description
+    slug
     collections {
       id
       slug
@@ -5290,6 +7101,11 @@ export const EligibleShippingMethodsDocument = gql`
       metadata
       price
       priceWithTax
+      customFields {
+        messageTemplateId
+        dataType1
+        dataType2
+      }
     }
   }
 `;
@@ -5394,12 +7210,254 @@ export const CollectionDocument = gql`
     }
   }
 `;
+export const GetChannelListDocument = gql`
+  query getChannelList {
+    getChannelList {
+      id
+      token
+      code
+    }
+  }
+`;
+export const GetChannelsByCustomerEmailDocument = gql`
+  query GetChannelsByCustomerEmail($email: String!) {
+    getChannelsByCustomerEmail(email: $email) {
+      id
+      code
+      token
+      defaultCurrencyCode
+    }
+  }
+`;
+export const GetPasswordResetTokenDocument = gql`
+  query GetPasswordResetToken {
+    getPasswordResetToken
+  }
+`;
+export const RequestPasswordResetDocument = gql`
+  mutation RequestPasswordReset($email: String!) {
+    requestPasswordReset(emailAddress: $email) {
+      __typename
+    }
+  }
+`;
+export const ResetPasswordDocument = gql`
+  mutation ResetPassword($token: String!, $password: String!) {
+    resetPassword(token: $token, password: $password) {
+      ... on CurrentUser {
+        id
+        channels {
+          token
+          code
+          permissions
+        }
+      }
+      ...ErrorResult
+      __typename
+    }
+  }
+  ${ErrorResultFragmentDoc}
+`;
+export const SendPhoneOtpDocument = gql`
+  mutation SendPhoneOtp($phoneNumber: String!) {
+    sendPhoneOtp(phoneNumber: $phoneNumber)
+  }
+`;
+export const ResendPhoneOtpDocument = gql`
+  mutation resendPhoneOtp($phoneNumber: String!) {
+    resendPhoneOtp(phoneNumber: $phoneNumber)
+  }
+`;
+export const GetChannelsByCustomerPhonenumberDocument = gql`
+  query getChannelsByCustomerPhonenumber($phoneNumber: String!) {
+    getChannelsByCustomerPhoneNumber(phoneNumber: $phoneNumber) {
+      id
+      code
+      token
+      defaultCurrencyCode
+    }
+  }
+`;
+export const CheckUniquePhoneDocument = gql`
+  query CheckUniquePhone($phoneNumber: String!) {
+    checkUniquePhone(phone: $phoneNumber)
+  }
+`;
+export const CustomBannersDocument = gql`
+  query customBanners {
+    customBanners {
+      id
+      assets {
+        id
+        name
+        source
+      }
+      channels {
+        id
+        code
+      }
+    }
+  }
+`;
+export const GenerateRazorpayOrderIdDocument = gql`
+  mutation generateRazorpayOrderId($orderId: ID!) {
+    generateRazorpayOrderId(orderId: $orderId) {
+      ... on RazorpayOrderIdSuccess {
+        razorpayOrderId
+        keyId
+        keySecret
+      }
+      ... on RazorpayOrderIdGenerationError {
+        message
+      }
+    }
+  }
+`;
+export const CancelOrderOnClientRequestDocument = gql`
+  mutation CancelOrderOnClientRequest($orderId: ID!, $value: Int!) {
+    cancelOrderOnClientRequest(orderId: $orderId, value: $value) {
+      ...Cart
+    }
+  }
+  ${CartFragmentDoc}
+`;
+export const OtherInstructionsDocument = gql`
+  mutation OtherInstructions($orderId: ID!, $value: String!) {
+    otherInstructions(orderId: $orderId, value: $value) {
+      id
+      customFields {
+        otherInstructions
+      }
+    }
+  }
+`;
+export const ToggleFavoriteDocument = gql`
+  mutation ToggleFavorite($productId: ID!) {
+    toggleFavorite(productId: $productId) {
+      items {
+        id
+        product {
+          id
+          name
+        }
+      }
+      totalItems
+    }
+  }
+`;
+export const ApplyLoyaltyPointsDocument = gql`
+  mutation ApplyLoyaltyPoints($amount: Int!) {
+    applyLoyaltyPointsToActiveOrder(amount: $amount) {
+      id
+      createdAt
+      orderPlacedAt
+      discounts {
+        amountWithTax
+      }
+      customFields {
+        razorpay_order_id
+        otherInstructions
+        loyaltyPointsEarned
+      }
+    }
+  }
+`;
+export const RemoveLoyaltyPointsFromActiveOrderDocument = gql`
+  mutation RemoveLoyaltyPointsFromActiveOrder {
+    removeLoyaltyPointsFromActiveOrder {
+      id
+      totalWithTax
+      discounts {
+        amountWithTax
+      }
+    }
+  }
+`;
+export const LoyaltyPointsConfigDocument = gql`
+  query LoyaltyPointsConfig {
+    loyaltyPointsConfig {
+      id
+      createdAt
+      updatedAt
+      rupeesPerPoint
+      pointsPerRupee
+      channels {
+        id
+        code
+        token
+        availableCurrencyCodes
+        createdAt
+        currencyCode
+        defaultCurrencyCode
+        defaultLanguageCode
+        pricesIncludeTax
+        updatedAt
+      }
+    }
+  }
+`;
+export const UpdateOrderPlacedAtIstDocument = gql`
+  mutation UpdateOrderPlacedAtIST($orderId: ID!) {
+    updateOrderPlacedAtIST(orderId: $orderId)
+  }
+`;
+export const GetFrequentlyOrderedProductsDocument = gql`
+  query GetFrequentlyOrderedProducts {
+    frequentlyOrderedProducts {
+      product {
+        id
+        name
+        slug
+        variants {
+          id
+          name
+          priceWithTax
+          currencyCode
+        }
+        featuredAsset {
+          preview
+        }
+      }
+      orderCount
+    }
+  }
+`;
 export const ActiveCustomerDocument = gql`
-  query activeCustomer {
+  query activeCustomer($options: LoyaltyPointsTransactionListOptions) {
     activeCustomer {
       id
       firstName
       lastName
+      favorites {
+        totalItems
+        items {
+          id
+          product {
+            id
+            name
+          }
+        }
+      }
+      customFields {
+        loyaltyPointsAvailable
+      }
+      loyaltyPointsTransactions(options: $options) {
+        items {
+          id
+          createdAt
+          updatedAt
+          note
+          value
+          order {
+            id
+            code
+            orderPlacedAt
+            state
+          }
+          __typename
+        }
+        totalItems
+      }
     }
   }
 `;
@@ -5443,9 +7501,23 @@ export const ActiveCustomerAddressesDocument = gql`
 export const ActiveCustomerOrderListDocument = gql`
   query activeCustomerOrderList($orderListOptions: OrderListOptions) {
     activeCustomer {
+      id
+      firstName
+      emailAddress
+      favorites {
+        totalItems
+        items {
+          id
+          product {
+            id
+            name
+          }
+        }
+      }
       orders(options: $orderListOptions) {
         totalItems
         items {
+          id
           code
           state
           orderPlacedAt
@@ -5467,6 +7539,10 @@ export const ActiveCustomerOrderListDocument = gql`
           }
           fulfillments {
             trackingCode
+          }
+          customFields {
+            clientRequestToCancel
+            otherInstructions
           }
           lines {
             quantity
@@ -5575,6 +7651,10 @@ export const ActiveOrderDocument = gql`
   query activeOrder {
     activeOrder {
       ...OrderDetail
+      couponCodes
+      customFields {
+        otherInstructions
+      }
     }
   }
   ${OrderDetailFragmentDoc}
@@ -5586,6 +7666,61 @@ export const OrderByCodeDocument = gql`
     }
   }
   ${OrderDetailFragmentDoc}
+`;
+export const GetCouponCodeListDocument = gql`
+  query GetCouponCodeList {
+    getCouponCodeList {
+      items {
+        id
+        name
+        couponCode
+        description
+        enabled
+        endsAt
+        startsAt
+        updatedAt
+        conditions {
+          code
+          args {
+            name
+            value
+          }
+        }
+        actions {
+          code
+          args {
+            name
+            value
+          }
+        }
+        usageLimit
+      }
+      totalItems
+      __typename
+    }
+  }
+`;
+export const ApplyCouponCodeDocument = gql`
+  mutation ApplyCouponCode($input: String!) {
+    applyCouponCode(couponCode: $input) {
+      __typename
+      ... on Order {
+        id
+        couponCodes
+        total
+      }
+      ... on CouponCodeInvalidError {
+        message
+      }
+    }
+  }
+`;
+export const RemoveCouponCodeDocument = gql`
+  mutation RemoveCouponCode($couponCode: String!) {
+    removeCouponCode(couponCode: $couponCode) {
+      __typename
+    }
+  }
 `;
 export const ProductDocument = gql`
   query product($slug: String, $id: ID) {
@@ -5907,6 +8042,232 @@ export function getSdk<C, E>(requester: Requester<C, E>) {
         options,
       ) as Promise<CollectionQuery>;
     },
+    getChannelList(
+      variables?: GetChannelListQueryVariables,
+      options?: C,
+    ): Promise<GetChannelListQuery> {
+      return requester<GetChannelListQuery, GetChannelListQueryVariables>(
+        GetChannelListDocument,
+        variables,
+        options,
+      ) as Promise<GetChannelListQuery>;
+    },
+    GetChannelsByCustomerEmail(
+      variables: GetChannelsByCustomerEmailQueryVariables,
+      options?: C,
+    ): Promise<GetChannelsByCustomerEmailQuery> {
+      return requester<
+        GetChannelsByCustomerEmailQuery,
+        GetChannelsByCustomerEmailQueryVariables
+      >(
+        GetChannelsByCustomerEmailDocument,
+        variables,
+        options,
+      ) as Promise<GetChannelsByCustomerEmailQuery>;
+    },
+    GetPasswordResetToken(
+      variables?: GetPasswordResetTokenQueryVariables,
+      options?: C,
+    ): Promise<GetPasswordResetTokenQuery> {
+      return requester<
+        GetPasswordResetTokenQuery,
+        GetPasswordResetTokenQueryVariables
+      >(
+        GetPasswordResetTokenDocument,
+        variables,
+        options,
+      ) as Promise<GetPasswordResetTokenQuery>;
+    },
+    RequestPasswordReset(
+      variables: RequestPasswordResetMutationVariables,
+      options?: C,
+    ): Promise<RequestPasswordResetMutation> {
+      return requester<
+        RequestPasswordResetMutation,
+        RequestPasswordResetMutationVariables
+      >(
+        RequestPasswordResetDocument,
+        variables,
+        options,
+      ) as Promise<RequestPasswordResetMutation>;
+    },
+    ResetPassword(
+      variables: ResetPasswordMutationVariables,
+      options?: C,
+    ): Promise<ResetPasswordMutation> {
+      return requester<ResetPasswordMutation, ResetPasswordMutationVariables>(
+        ResetPasswordDocument,
+        variables,
+        options,
+      ) as Promise<ResetPasswordMutation>;
+    },
+    SendPhoneOtp(
+      variables: SendPhoneOtpMutationVariables,
+      options?: C,
+    ): Promise<SendPhoneOtpMutation> {
+      return requester<SendPhoneOtpMutation, SendPhoneOtpMutationVariables>(
+        SendPhoneOtpDocument,
+        variables,
+        options,
+      ) as Promise<SendPhoneOtpMutation>;
+    },
+    resendPhoneOtp(
+      variables: ResendPhoneOtpMutationVariables,
+      options?: C,
+    ): Promise<ResendPhoneOtpMutation> {
+      return requester<ResendPhoneOtpMutation, ResendPhoneOtpMutationVariables>(
+        ResendPhoneOtpDocument,
+        variables,
+        options,
+      ) as Promise<ResendPhoneOtpMutation>;
+    },
+    getChannelsByCustomerPhonenumber(
+      variables: GetChannelsByCustomerPhonenumberQueryVariables,
+      options?: C,
+    ): Promise<GetChannelsByCustomerPhonenumberQuery> {
+      return requester<
+        GetChannelsByCustomerPhonenumberQuery,
+        GetChannelsByCustomerPhonenumberQueryVariables
+      >(
+        GetChannelsByCustomerPhonenumberDocument,
+        variables,
+        options,
+      ) as Promise<GetChannelsByCustomerPhonenumberQuery>;
+    },
+    CheckUniquePhone(
+      variables: CheckUniquePhoneQueryVariables,
+      options?: C,
+    ): Promise<CheckUniquePhoneQuery> {
+      return requester<CheckUniquePhoneQuery, CheckUniquePhoneQueryVariables>(
+        CheckUniquePhoneDocument,
+        variables,
+        options,
+      ) as Promise<CheckUniquePhoneQuery>;
+    },
+    customBanners(
+      variables?: CustomBannersQueryVariables,
+      options?: C,
+    ): Promise<CustomBannersQuery> {
+      return requester<CustomBannersQuery, CustomBannersQueryVariables>(
+        CustomBannersDocument,
+        variables,
+        options,
+      ) as Promise<CustomBannersQuery>;
+    },
+    generateRazorpayOrderId(
+      variables: GenerateRazorpayOrderIdMutationVariables,
+      options?: C,
+    ): Promise<GenerateRazorpayOrderIdMutation> {
+      return requester<
+        GenerateRazorpayOrderIdMutation,
+        GenerateRazorpayOrderIdMutationVariables
+      >(
+        GenerateRazorpayOrderIdDocument,
+        variables,
+        options,
+      ) as Promise<GenerateRazorpayOrderIdMutation>;
+    },
+    CancelOrderOnClientRequest(
+      variables: CancelOrderOnClientRequestMutationVariables,
+      options?: C,
+    ): Promise<CancelOrderOnClientRequestMutation> {
+      return requester<
+        CancelOrderOnClientRequestMutation,
+        CancelOrderOnClientRequestMutationVariables
+      >(
+        CancelOrderOnClientRequestDocument,
+        variables,
+        options,
+      ) as Promise<CancelOrderOnClientRequestMutation>;
+    },
+    OtherInstructions(
+      variables: OtherInstructionsMutationVariables,
+      options?: C,
+    ): Promise<OtherInstructionsMutation> {
+      return requester<
+        OtherInstructionsMutation,
+        OtherInstructionsMutationVariables
+      >(
+        OtherInstructionsDocument,
+        variables,
+        options,
+      ) as Promise<OtherInstructionsMutation>;
+    },
+    ToggleFavorite(
+      variables: ToggleFavoriteMutationVariables,
+      options?: C,
+    ): Promise<ToggleFavoriteMutation> {
+      return requester<ToggleFavoriteMutation, ToggleFavoriteMutationVariables>(
+        ToggleFavoriteDocument,
+        variables,
+        options,
+      ) as Promise<ToggleFavoriteMutation>;
+    },
+    ApplyLoyaltyPoints(
+      variables: ApplyLoyaltyPointsMutationVariables,
+      options?: C,
+    ): Promise<ApplyLoyaltyPointsMutation> {
+      return requester<
+        ApplyLoyaltyPointsMutation,
+        ApplyLoyaltyPointsMutationVariables
+      >(
+        ApplyLoyaltyPointsDocument,
+        variables,
+        options,
+      ) as Promise<ApplyLoyaltyPointsMutation>;
+    },
+    RemoveLoyaltyPointsFromActiveOrder(
+      variables?: RemoveLoyaltyPointsFromActiveOrderMutationVariables,
+      options?: C,
+    ): Promise<RemoveLoyaltyPointsFromActiveOrderMutation> {
+      return requester<
+        RemoveLoyaltyPointsFromActiveOrderMutation,
+        RemoveLoyaltyPointsFromActiveOrderMutationVariables
+      >(
+        RemoveLoyaltyPointsFromActiveOrderDocument,
+        variables,
+        options,
+      ) as Promise<RemoveLoyaltyPointsFromActiveOrderMutation>;
+    },
+    LoyaltyPointsConfig(
+      variables?: LoyaltyPointsConfigQueryVariables,
+      options?: C,
+    ): Promise<LoyaltyPointsConfigQuery> {
+      return requester<
+        LoyaltyPointsConfigQuery,
+        LoyaltyPointsConfigQueryVariables
+      >(
+        LoyaltyPointsConfigDocument,
+        variables,
+        options,
+      ) as Promise<LoyaltyPointsConfigQuery>;
+    },
+    UpdateOrderPlacedAtIST(
+      variables: UpdateOrderPlacedAtIstMutationVariables,
+      options?: C,
+    ): Promise<UpdateOrderPlacedAtIstMutation> {
+      return requester<
+        UpdateOrderPlacedAtIstMutation,
+        UpdateOrderPlacedAtIstMutationVariables
+      >(
+        UpdateOrderPlacedAtIstDocument,
+        variables,
+        options,
+      ) as Promise<UpdateOrderPlacedAtIstMutation>;
+    },
+    GetFrequentlyOrderedProducts(
+      variables?: GetFrequentlyOrderedProductsQueryVariables,
+      options?: C,
+    ): Promise<GetFrequentlyOrderedProductsQuery> {
+      return requester<
+        GetFrequentlyOrderedProductsQuery,
+        GetFrequentlyOrderedProductsQueryVariables
+      >(
+        GetFrequentlyOrderedProductsDocument,
+        variables,
+        options,
+      ) as Promise<GetFrequentlyOrderedProductsQuery>;
+    },
     activeCustomer(
       variables?: ActiveCustomerQueryVariables,
       options?: C,
@@ -6050,6 +8411,42 @@ export function getSdk<C, E>(requester: Requester<C, E>) {
         variables,
         options,
       ) as Promise<OrderByCodeQuery>;
+    },
+    GetCouponCodeList(
+      variables?: GetCouponCodeListQueryVariables,
+      options?: C,
+    ): Promise<GetCouponCodeListQuery> {
+      return requester<GetCouponCodeListQuery, GetCouponCodeListQueryVariables>(
+        GetCouponCodeListDocument,
+        variables,
+        options,
+      ) as Promise<GetCouponCodeListQuery>;
+    },
+    ApplyCouponCode(
+      variables: ApplyCouponCodeMutationVariables,
+      options?: C,
+    ): Promise<ApplyCouponCodeMutation> {
+      return requester<
+        ApplyCouponCodeMutation,
+        ApplyCouponCodeMutationVariables
+      >(
+        ApplyCouponCodeDocument,
+        variables,
+        options,
+      ) as Promise<ApplyCouponCodeMutation>;
+    },
+    RemoveCouponCode(
+      variables: RemoveCouponCodeMutationVariables,
+      options?: C,
+    ): Promise<RemoveCouponCodeMutation> {
+      return requester<
+        RemoveCouponCodeMutation,
+        RemoveCouponCodeMutationVariables
+      >(
+        RemoveCouponCodeDocument,
+        variables,
+        options,
+      ) as Promise<RemoveCouponCodeMutation>;
     },
     product(
       variables?: ProductQueryVariables,

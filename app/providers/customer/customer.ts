@@ -1,8 +1,18 @@
 import gql from 'graphql-tag';
 import { QueryOptions, sdk } from '~/graphqlWrapper';
-import { OrderListOptions, CustomerOrdersArgs } from '~/generated/graphql';
+import { OrderListOptions } from '~/generated/graphql';
 
-export function getActiveCustomer(options: QueryOptions) {
+// Extend QueryOptions to include variables for pagination
+interface ExtendedQueryOptions extends QueryOptions {
+  variables?: {
+    options?: {
+      take?: number;
+      skip?: number;
+    };
+  };
+}
+
+export function getActiveCustomer(options: ExtendedQueryOptions) {
   return sdk.activeCustomer(undefined, options);
 }
 
@@ -14,16 +24,50 @@ export function getActiveCustomerAddresses(options: QueryOptions) {
   return sdk.activeCustomerAddresses(undefined, options);
 }
 
-export function getActiveCustomerOrderList(orderListOptions: OrderListOptions, options: QueryOptions) {
-  return sdk.activeCustomerOrderList({orderListOptions}, options);
+export function getActiveCustomerOrderList(
+  orderListOptions: OrderListOptions,
+  options: QueryOptions,
+) {
+  return sdk.activeCustomerOrderList({ orderListOptions }, options);
 }
 
 gql`
-  query activeCustomer {
+  query activeCustomer($options: LoyaltyPointsTransactionListOptions) {
     activeCustomer {
       id
       firstName
       lastName
+      favorites {
+        totalItems
+        items {
+          id
+          product {
+            id
+            name
+          }
+        }
+      }
+      # ✅ Loyalty points merged
+      customFields {
+        loyaltyPointsAvailable
+      }
+      loyaltyPointsTransactions(options: $options) {
+        items {
+          id
+          createdAt
+          updatedAt
+          note
+          value
+          order {
+            id
+            code
+            orderPlacedAt
+            state
+          }
+          __typename
+        }
+        totalItems
+      }
     }
   }
 `;
@@ -70,9 +114,24 @@ gql`
 gql`
   query activeCustomerOrderList($orderListOptions: OrderListOptions) {
     activeCustomer {
+      id
+      firstName
+      emailAddress
+      # ✅ Favorites kept in order list too
+      favorites {
+        totalItems
+        items {
+          id
+          product {
+            id
+            name
+          }
+        }
+      }
       orders(options: $orderListOptions) {
         totalItems
         items {
+          id
           code
           state
           orderPlacedAt
@@ -94,6 +153,10 @@ gql`
           }
           fulfillments {
             trackingCode
+          }
+          customFields {
+            clientRequestToCancel
+            otherInstructions
           }
           lines {
             quantity

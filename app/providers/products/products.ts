@@ -17,11 +17,16 @@ export function getProductBySlug(slug: string, options: QueryOptions) {
   return sdk.product({ slug }, options);
 }
 
+export async function getProductById(id: string, options: QueryOptions) {
+  return sdk.product({ id }, options);
+}
+
 export const detailedProductFragment = gql`
   fragment DetailedProduct on Product {
     id
     name
     description
+    slug
     collections {
       id
       slug

@@ -1,148 +1,147 @@
-import { RootLoaderData } from '~/root';
 import { Link } from '@remix-run/react';
-import { useTranslation } from 'react-i18next';
+import { Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
 
-const navigation = {
-  support: [
-    { page: 'help', href: '#' },
-    { page: 'trackOrder', href: '#' },
-    { page: 'shipping', href: '#' },
-    { page: 'returns', href: '#' },
-  ],
-  company: [
-    { page: 'about', href: '#' },
-    { page: 'blog', href: '#' },
-    { page: 'responsibility', href: '#' },
-    { page: 'press', href: '#' },
-  ],
-};
-
-export default function Footer({
-  collections,
-}: {
-  collections: RootLoaderData['collections'];
-}) {
-  const { t } = useTranslation();
-
+export default function Footer() {
   return (
-    <footer
-      className="mt-24 border-t bg-gray-50"
-      aria-labelledby="footer-heading"
-    >
-      <h2 id="footer-heading" className="sr-only">
-        {t('footer.title')}
-      </h2>
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 ">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="grid grid-cols-2 gap-8 xl:col-span-2">
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-500 tracking-wider uppercase">
-                  {t('footer.shop')}
-                </h3>
-                <ul role="list" className="mt-4 space-y-4">
-                  {collections.map((collection) => (
-                    <li key={collection.id}>
-                      <Link
-                        className="text-base text-gray-500 hover:text-gray-600"
-                        to={'/collections/' + collection.slug}
-                        prefetch="intent"
-                        key={collection.id}
-                      >
-                        {collection.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+    <footer className="relative overflow-hidden">
+      <div className="relative bg-white min-h-[200px]">
+        <div className="absolute inset-0">
+          <svg
+            className="absolute inset-0 w-full h-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient
+                id="blueGradient"
+                x1="0%"
+                y1="0%"
+                x2="0%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#1e3a8a" />
+                <stop offset="50%" stopColor="#2563eb" />
+                <stop offset="100%" stopColor="#1e3a8a" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0,15 L 0,100 L 100,100 L 100,15 Q 75,25 50,25 Q 25,25 0,15 Z"
+              fill="url(#blueGradient)"
+            />
+          </svg>
+        </div>
+
+        <div className="relative max-w-3xl mx-auto mt-5 text-center px-6 py-8">
+          {/* Main CTA Card */}
+          <div className="bg-gradient-to-r from-yellow-300 to-orange-300 rounded-3xl mb-7 relative overflow-hidden">
+            <div className="flex items-center gap-8">
+              <div className="w-1/3 rounded-full">
+                <img
+                  src="/Apple.jpg"
+                  alt="Cube Logo"
+                  className="w-full h-auto object-cover rounded-r-2xl"
+                />
               </div>
-              <div className="mt-12 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-500 tracking-wider uppercase">
-                  {t('footer.support')}
-                </h3>
-                <ul role="list" className="mt-4 space-y-4">
-                  {navigation.support.map(({ page, href }) => (
-                    <li key={page}>
-                      <a
-                        href={href}
-                        className="text-base text-gray-500 hover:text-gray-600"
-                      >
-                        {t(`navigation.support.${page}`)}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-500 tracking-wider uppercase">
-                  {t('account.company')}
-                </h3>
-                <ul role="list" className="mt-4 space-y-4">
-                  {navigation.company.map(({ page, href }) => (
-                    <li key={page}>
-                      <a
-                        href={href}
-                        className="text-base text-gray-500 hover:text-gray-600"
-                      >
-                        {t(`navigation.company.${page}`)}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className="mt-8 xl:mt-0">
-            <h3 className="text-sm font-semibold text-gray-500 tracking-wider uppercase">
-              {t('footer.subscribeHeader')}
-            </h3>
-            <p className="mt-4 text-base text-gray-500">
-              {t('footer.subscribeIntro')}
-            </p>
-            <form className="mt-4 sm:flex sm:max-w-md">
-              <label htmlFor="email-address" className="sr-only">
-                {t('acount.emailAddress')}
-              </label>
-              <input
-                type="email"
-                name="email-address"
-                id="email-address"
-                autoComplete="email"
-                required
-                className="appearance-none min-w-0 w-full bg-white border border-gray-300 rounded-md py-2 px-4 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white focus:border-white focus:placeholder-gray-400"
-                placeholder={t('footer.emailPlaceholder')}
-              />
-              <div className="mt-3 rounded-md sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-                <button
-                  type="submit"
-                  className="w-full bg-primary-500 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-base font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-500"
+              <div className="w-2/3 text-center">
+                <h2 className="text-3xl font-bold text-blue-900 mb-2">
+                  NEVER MISS A DROP
+                </h2>
+                <p
+                  className="text-blue-800 mb-4
+                 text-sm"
                 >
-                  {t('footer.subscribe')}
+                  Need our help? Want a bottle? Get in touch with our friendly
+                  team
+                  <br />
+                  and we'll get in touch with you as soon as we can.
+                </p>
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full">
+                  CONTACT US
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-        <div className="mt-8 border-t pt-8">
-          <a
-            className="flex items-center space-x-4 font-medium text-gray-500 hover:text-gray-700"
-            href="https://github.com/vendure-ecommerce/storefront-remix-starter"
-          >
-            <svg
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                clipRule="evenodd"
+
+          {/* Sign Up Section */}
+          <div className="text-center mb-5">
+            <div className="text-center mb-8">
+              <h3 className="text-6xl font-bold text-white">SIGN UP</h3>
+            </div>
+
+            <div className="flex items-center justify-center gap-4 max-w-md mx-auto mb-4">
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="flex-1 bg-white text-black placeholder-gray-500 border-0 rounded-full px-6 py-3"
               />
-            </svg>
-            <span>github.com/vendure-ecommerce/storefront-remix-starter</span>
-          </a>
+              <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full">
+                SEND
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-blue-200">
+              <input type="checkbox" className="w-4 h-4" />
+              <span>By continuing, you will accept the Privacy Policy</span>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex items-center justify-center gap-8 text-white">
+            <Link
+              to="/about"
+              className="hover:text-yellow-300 transition-colors font-medium"
+            >
+              HOME
+            </Link>
+            <Link
+              to="/products"
+              className="hover:text-yellow-300 transition-colors font-medium"
+            >
+              PRODUCTS
+            </Link>
+            <Link
+              to="/contact"
+              className="hover:text-yellow-300 transition-colors font-medium"
+            >
+              ABOUT US
+            </Link>
+            <Link
+              to="/faq"
+              className="hover:text-yellow-300 transition-colors font-medium"
+            >
+              CONTACT US
+            </Link>
+          </nav>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="flex relative items-center mx-auto mt-7 text-center max-w-4xl justify-between text-sm text-blue-200 border-t border-blue-600 py-6">
+          <div className="flex items-center gap-4">
+            <span>
+              Copyright | 2023 SPARKS (S) PTE LTD. All Rights Reserved.
+            </span>
+            <Link to="/terms" className="hover:text-white transition-colors">
+              Terms and Conditions
+            </Link>
+            <Link to="/privacy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Facebook className="w-4 h-4 text-black" />
+            </div>
+            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Instagram className="w-4 h-4 text-black" />
+            </div>
+            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Twitter className="w-4 h-4 text-black" />
+            </div>
+            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Linkedin className="w-4 h-4 text-black" />
+            </div>
+          </div>
         </div>
       </div>
     </footer>

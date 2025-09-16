@@ -1,26 +1,37 @@
+'use client';
+
 import { Form } from '@remix-run/react';
-import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 
-export function SearchBar() {
-  const { t } = useTranslation();
+export function SearchBar({ isOpen }: { isOpen: boolean }) {
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  let initialQuery = '';
-  if (typeof window === 'undefined') {
-    // running in a server environment
-  } else {
-    // running in a browser environment
-    initialQuery = new URL(window.location.href).searchParams.get('q') ?? '';
-  }
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true);
+    } else {
+      const timer = setTimeout(() => setIsAnimating(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   return (
-    <Form method="get" action="/search" key={initialQuery}>
-      <input
-        type="search"
-        name="q"
-        defaultValue={initialQuery}
-        placeholder={t('common.search')}
-        className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
-      />
-    </Form>
+    <div
+      className={`overflow-hidden transition-all duration-300 ease-out ${
+        isOpen ? 'w-64 opacity-100' : 'w-0 opacity-0'
+      }`}
+    >
+      <Form method="get" action="/search" className="w-full">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search"
+          className={`w-full p-2 shadow-md rounded-full border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-600 transform transition-all duration-300 ease-out ${
+            isOpen ? 'translate-x-0 scale-100' : 'translate-x-4 scale-95'
+          }`}
+          autoFocus={isOpen}
+        />
+      </Form>
+    </div>
   );
 }

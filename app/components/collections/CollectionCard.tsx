@@ -1,5 +1,5 @@
 import { Link } from '@remix-run/react';
-import { CollectionsQuery } from '~/generated/graphql';
+import type { CollectionsQuery } from '~/generated/graphql';
 
 export function CollectionCard({
   collection,
@@ -7,24 +7,32 @@ export function CollectionCard({
   collection: CollectionsQuery['collections']['items'][number];
 }) {
   return (
-    <Link
-      to={'/collections/' + collection.slug}
-      prefetch="intent"
-      key={collection.id}
-      className="max-w-[300px] relative rounded-lg overflow-hidden hover:opacity-75 xl:w-auto"
-    >
-      <span aria-hidden="true" className="">
-        <div className="w-full h-full object-center object-cover">
-          <img src={collection.featuredAsset?.preview + '?w=300&h=300'} />
-        </div>
-      </span>
-      <span
-        aria-hidden="true"
-        className="absolute w-full bottom-x-0 bottom-0 h-2/3 bg-gradient-to-t from-gray-800 opacity-50"
-      />
-      <span className="absolute w-full bottom-2 mt-auto text-center text-xl font-bold text-white">
-        {collection.name}
-      </span>
-    </Link>
+    <div className="flex flex-col border rounded-xl relative bg-white shadow-sm  group">
+      <Link
+        to={'/collections/' + collection.slug}
+        prefetch="intent"
+        key={collection.id}
+        className="flex flex-col flex-1 relative overflow-hidden rounded-xl"
+      >
+        <img
+          className="rounded-xl flex-grow object-cover aspect-[6/4] transition-transform duration-300 ease-in-out group-hover:scale-110"
+          alt={collection.name}
+          src={
+            collection.featuredAsset?.preview
+              ? collection.featuredAsset.preview + '?w=100&h=200'
+              : '/placeholder.svg?height=200&width=100'
+          }
+        />
+
+        <span
+          aria-hidden="true"
+          className="absolute w-full bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent rounded-b-xl transition-opacity duration-300 group-hover:from-black/80"
+        />
+
+        <span className="absolute bottom-2 w-full text-center text-lg font-medium text-white transition-all duration-300 group-hover:text-xl group-hover:font-semibold group-hover:bottom-3">
+          {collection.name}
+        </span>
+      </Link>
+    </div>
   );
 }

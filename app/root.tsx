@@ -27,10 +27,12 @@ import { useEffect, useState } from 'react';
 import { CartTray } from '~/components/cart/CartTray';
 import { getActiveCustomer } from '~/providers/customer/customer';
 import Footer from '~/components/footer/Footer';
+import type { CartLoaderData } from '~/routes/api.active-order';
 import { useActiveOrder } from '~/utils/use-active-order';
 import { useChangeLanguage } from 'remix-i18next';
 import { useTranslation } from 'react-i18next';
 import { getI18NextServer } from '~/i18next.server';
+import { OrderDetailFragment } from '~/generated/graphql';
 
 export const meta: MetaFunction = () => {
   return [{ title: APP_META_TITLE }, { description: APP_META_DESCRIPTION }];
@@ -72,7 +74,7 @@ export type RootLoaderData = {
   locale: string;
 };
 
-export async function loader({ request, params, context }: DataFunctionArgs) {
+export async function loader({ request }: DataFunctionArgs) {
   const collections = await getCollections(request, { take: 20 });
   const topLevelCollections = collections.filter(
     (collection) => collection.parent?.name === '__root_collection__',
@@ -97,6 +99,7 @@ export default function App() {
   const { collections } = loaderData;
   const { locale } = useLoaderData<typeof loader>();
   const { i18n } = useTranslation();
+
   const {
     activeOrderFetcher,
     activeOrder,
@@ -108,10 +111,20 @@ export default function App() {
   useChangeLanguage(locale);
 
   useEffect(() => {
-    // When the loader has run, this implies we should refresh the contents
-    // of the activeOrder as the user may have signed in or out.
+    // Refresh active order when loader runs
     refresh();
   }, [loaderData]);
+
+  // ✅ handlers defined INSIDE component
+  const handleAdjustQty = async (orderLineId: string, quantity: number) => {
+    await adjustOrderLine(orderLineId, quantity);
+    refresh();
+  };
+
+  const handleRemoveItem = async (orderLineId: string) => {
+    await removeItem(orderLineId);
+    refresh();
+  };
 
   return (
     <html lang={locale} dir={i18n.dir()} id="app">
@@ -126,8 +139,19 @@ export default function App() {
         <Header
           onCartIconClick={() => setOpen(!open)}
           cartQuantity={activeOrder?.totalQuantity ?? 0}
+          collections={collections}
+          isCartOpen={open}
         />
-        <main className="">
+
+        <CartTray
+          open={open}
+          onClose={setOpen}
+          activeOrder={activeOrder as OrderDetailFragment}
+          adjustOrderLine={handleAdjustQty}
+          removeItem={handleRemoveItem}
+        />
+
+        <main>
           <Outlet
             context={{
               activeOrderFetcher,
@@ -137,17 +161,10 @@ export default function App() {
             }}
           />
         </main>
-        <CartTray
-          open={open}
-          onClose={setOpen}
-          activeOrder={activeOrder}
-          adjustOrderLine={adjustOrderLine}
-          removeItem={removeItem}
-        />
+
+        <Footer />
         <ScrollRestoration />
         <Scripts />
-        <Footer collections={collections}></Footer>
-
         {devMode && <LiveReload />}
       </body>
     </html>
@@ -162,9 +179,6 @@ type DefaultSparseErrorPageProps = {
 
 /**
  * You should replace this in your actual storefront to provide a better user experience.
- * You probably want to still show your footer and navigation. You will also need fallbacks
- * for your data dependant components in case your shop instance / CMS isnt responding.
- * See: https://remix.run/docs/en/main/route/error-boundary
  */
 function DefaultSparseErrorPage({
   tagline,
@@ -209,7 +223,7 @@ function DefaultSparseErrorPage({
 }
 
 /**
- * As mentioned in the jsdoc for `DefaultSparseErrorPage` you should replace this to suit your needs.
+ * Error boundary
  */
 export function ErrorBoundary() {
   let tagline = 'Oopsy daisy';
@@ -234,8 +248,6 @@ export function ErrorBoundary() {
 
 /**
  * In Remix v2 there will only be a `ErrorBoundary`
- * As mentioned in the jsdoc for `DefaultSparseErrorPage` you should replace this to suit your needs.
- * Relevant for the future: https://remix.run/docs/en/main/route/error-boundary-v2
  */
 export function CatchBoundary() {
   return ErrorBoundary();
